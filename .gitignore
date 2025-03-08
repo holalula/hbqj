@@ -1,13 +1,21 @@
 /.vs
 /Debug
 /x64
-/test
+
+*.vcxproj.user
+*.user
+*.useros
+*.filters
 
 /HaiBinQiangJia/Debug
 /HaiBinQiangJia/x64
 
 /boogiepop/Debug
 /boogiepop/x64
+
+/test/Debug
+/test/x64
+/test/Release
 
 *zip
 *dll
