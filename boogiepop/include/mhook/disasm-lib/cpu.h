@@ -4,10 +4,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#pragma pack(push,1)
 
+// Place windows.h before #pragma pack(push,1) to ensure it's not affected by 1-byte packing rules
 #include <windows.h>
 #include "misc.h"
+
+#pragma pack(push,1)
 
 ////////////////////////////////////////////////////////
 // System descriptors
