@@ -80,7 +80,7 @@ namespace FFLog {
                 std::cout << obj;
                 break;
             case file:
-                ofstream ostrm(file_name, ios::app);
+                std::ofstream ostrm(file_name, std::ios::app);
                 ostrm << type << GetTimeNow() << " ";
                 ostrm << obj;
             }
@@ -109,7 +109,7 @@ namespace FFLog {
                 manip(std::cout);
                 break;
             case file:
-                ofstream logstream(file_name, ios::app);
+                std::ofstream logstream(file_name, std::ios::app);
                 manip(logstream);
                 break;
             }
