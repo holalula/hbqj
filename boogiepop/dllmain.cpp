@@ -1,10 +1,11 @@
 ﻿// TODO: refactor the hook
-#include <include/ff/FFProcess.h>
-#include <include/utils/memory.h>
 #include<WinSock2.h>
+
 #include "include/mhook/mhook-lib/mhook.h"
-#include <include/ff/FFLog.h>
-#include <include/ff/FFProcess.h>
+#include "utils/memory.h"
+#include "ff/FFProcess.h"
+#include "ff/FFLog.h"
+
 #pragma data_seg("DLLSharedSection") 
 __int64 OPITEM_P1 = 0;
 __int64 OPITEM_P2 = 0;

@@ -82,7 +82,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>F:\HaiBinQiangJia\HaiBinQiangJia;F:\HaiBinQiangJia\boogiepop\include\mhook;F:\HaiBinQiangJia\boogiepop\include\ImGuizmo;F:\HaiBinQiangJia\boogiepop\include\ImGui;$(IncludePath)</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -143,7 +143,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>E:\diaoyongDLL\boogiepop\include\ImGuizmo;E:\diaoyongDLL\boogiepop\include\ImGui;E:\diaoyongDLL\HaiBinQiangJia;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\include;.\include\ImGui;.\include\ImGuizmo;..\HaiBinQiangJia\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
