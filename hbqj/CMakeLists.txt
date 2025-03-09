@@ -1,4 +1,4 @@
-set(PROJECT_NAME HaiBinQiangJia)
+set(PROJECT_NAME hbqj)
 
 ################################################################################
 # Source groups
@@ -51,14 +51,14 @@ set(ALL_FILES
 ################################################################################
 # Target
 ################################################################################
-add_library(${PROJECT_NAME} SHARED ${ALL_FILES})
+add_library(hbqj SHARED ${ALL_FILES})
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/pch.h>"
 )
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE HaiBinQiangJia)
+set(ROOT_NAMESPACE hbqj)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     VS_GLOBAL_KEYWORD "Win32Proj"
@@ -94,7 +94,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
         "$<$<CONFIG:Release>:"
             "NDEBUG"
         ">"
-        "HAIBINQIANGJIA_EXPORTS;"
+        "HBQJ_EXPORTS;"
         "_WINDOWS;"
         "_USRDLL;"
         "UNICODE;"
@@ -109,7 +109,7 @@ elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
             "NDEBUG"
         ">"
         "WIN32;"
-        "HAIBINQIANGJIA_EXPORTS;"
+        "HBQJ_EXPORTS;"
         "_WINDOWS;"
         "_USRDLL;"
         "UNICODE;"

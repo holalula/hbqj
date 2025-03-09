@@ -94,7 +94,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
             "${CMAKE_CURRENT_SOURCE_DIR}/include;"
             "${CMAKE_CURRENT_SOURCE_DIR}/include/ImGui;"
             "${CMAKE_CURRENT_SOURCE_DIR}/include/ImGuizmo;"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../HaiBinQiangJia/include"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../hbqj/include"
         ">"
     )
 endif()
@@ -197,6 +197,6 @@ endif()
 ################################################################################
 # Link with other targets.
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    HaiBinQiangJia
+    "hbqj"
 )
 

@@ -10,8 +10,8 @@
 *.filters
 CMakeSettings.json
 
-/HaiBinQiangJia/Debug
-/HaiBinQiangJia/x64
+/hbqj/Debug
+/hbqj/x64
 
 /boogiepop/Debug
 /boogiepop/x64

@@ -1,7 +1,7 @@
 ﻿#include <iostream>
-#include "../HaiBinQiangJia/include/ff/FFProcess.h"
-#include "../HaiBinQiangJia/include/utils/sigscanner.h"
-#include "../HaiBinQiangJia/HBQJ_Process.h"
+#include "../hbqj/include/ff/FFProcess.h"
+#include "../hbqj/include/utils/sigscanner.h"
+#include "../hbqj/HBQJ_Process.h"
 
 using namespace std;
 
