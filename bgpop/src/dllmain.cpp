@@ -573,6 +573,7 @@ DWORD WINAPI SetupDX11Hook(LPVOID lp){
 	detourDirectX();
 	//Mhook_SetHook((LPVOID*)&fnIDXGISwapChainPresent, Present);
 	//printValues();
+	return 1;
 }
 void retrieveValues()
 {
