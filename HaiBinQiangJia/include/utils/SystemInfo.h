@@ -360,8 +360,8 @@ inline std::string GetSystemInfo() {
 	oss << "=== os information ===" << std::endl;
 	oss << getOsInfo() << std::endl;
 
-	oss << "=== cpu infomation ===" << std::endl;
-	oss << getCpuInfo() << std::endl;
+	// oss << "=== cpu infomation ===" << std::endl;
+	// oss << getCpuInfo() << std::endl;
 
 	oss << "=== memory information ===" << std::endl;
 	oss << getMemoryInfo() << std::endl;

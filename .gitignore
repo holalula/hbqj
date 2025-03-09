@@ -2,11 +2,13 @@
 /.vs
 /Debug
 /x64
+/out
 
 *.vcxproj.user
 *.user
 *.useros
 *.filters
+CMakeSettings.json
 
 /HaiBinQiangJia/Debug
 /HaiBinQiangJia/x64

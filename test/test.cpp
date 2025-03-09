@@ -9,4 +9,5 @@ int main()
 {
     std::cout << "HaiBinQiangJia\n";
    
+    getchar();
 }

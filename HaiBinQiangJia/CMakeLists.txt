@@ -37,16 +37,15 @@ set(__rapidjson
     "include/rapidjson/writer.h"
 )
 
-set(
+set(SOURCE_FILES
     "dllmain.cpp"
     "pch.cpp"
     "placeholder.def"
 )
 
 set(ALL_FILES
-    ${}
+    ${SOURCE_FILES}
     ${__rapidjson}
-    ${}
 )
 
 ################################################################################
