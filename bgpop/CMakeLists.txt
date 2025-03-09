@@ -1,4 +1,4 @@
-set(PROJECT_NAME boogiepop)
+set(PROJECT_NAME bgpop)
 
 ################################################################################
 # Source groups
@@ -64,14 +64,14 @@ set(ALL_FILES
 ################################################################################
 # Target
 ################################################################################
-add_library(${PROJECT_NAME} SHARED ${ALL_FILES})
+add_library(bgpop SHARED ${ALL_FILES})
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/pch.h>"
 )
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE boogiepop)
+set(ROOT_NAMESPACE bgpop)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     VS_GLOBAL_KEYWORD "Win32Proj"
@@ -110,7 +110,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
         "$<$<CONFIG:Release>:"
             "NDEBUG"
         ">"
-        "BOOGIEPOP_EXPORTS;"
+        "BGPOP_EXPORTS;"
         "_WINDOWS;"
         "_USRDLL;"
         "UNICODE;"
@@ -125,7 +125,7 @@ elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
             "NDEBUG"
         ">"
         "WIN32;"
-        "BOOGIEPOP_EXPORTS;"
+        "BGPOP_EXPORTS;"
         "_WINDOWS;"
         "_USRDLL;"
         "UNICODE;"
@@ -196,7 +196,7 @@ endif()
 # Dependencies
 ################################################################################
 # Link with other targets.
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(bgpop PUBLIC
     "hbqj"
 )
 

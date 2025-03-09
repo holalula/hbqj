@@ -85,7 +85,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ################################################################################
 # Sub-projects
 ################################################################################
-add_subdirectory(boogiepop)
+add_subdirectory(bgpop)
 add_subdirectory(hbqj)
 add_subdirectory(test)
 
