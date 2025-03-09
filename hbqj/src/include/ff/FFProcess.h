@@ -1,7 +1,7 @@
 #ifndef __FFPROCESS_H
 #define __FFPROCESS_H
 #pragma once
-#include "../../pch.h"
+#include "pch.h"
 #include "../utils/md5.h"
 #include "../utils/sigscanner.h"
 #include "../utils/strutils.h"

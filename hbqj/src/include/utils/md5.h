@@ -1,7 +1,7 @@
 #ifndef MD5_H
 #define MD5_H
 #pragma once
-#include "../../pch.h"
+#include "pch.h"
 
 
 #include <string>

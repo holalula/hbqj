@@ -1,10 +1,12 @@
 // TODO: refactor function types
 #pragma once
-#include "../../pch.h"
 #include <iostream>
 #include <tchar.h>
 #include <TlHelp32.h>
 #include <vector>
+
+#include "pch.h"
+
 typedef void (*SETINT)(int);
 typedef int (*GETINT)();
 typedef __int64 (*GETINT64)();

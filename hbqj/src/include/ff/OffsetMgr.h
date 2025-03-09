@@ -1,7 +1,7 @@
 #ifndef __OFFSETMGR_H
 #define __OFFSETMGR_H
 #pragma once
-#include "../../pch.h"
+#include "pch.h"
 #include <vector>
 
 static class DLLAPI OffsetMgr {
