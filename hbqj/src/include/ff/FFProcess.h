@@ -2,7 +2,6 @@
 #define __FFPROCESS_H
 #pragma once
 #include "pch.h"
-#include "../utils/md5.h"
 #include "../utils/sigscanner.h"
 #include "../utils/strutils.h"
 #include "../utils/device.h"
@@ -158,9 +157,9 @@ public:
 		WriteGameMemory<float>(this->hProcess, baseAdd, qua.y, Qua_y);
 		WriteGameMemory<float>(this->hProcess, baseAdd, qua.w, Qua_w);
 	}
-	vector<unsigned long long> get_furniture_addr_list() {
+	std::vector<unsigned long long> get_furniture_addr_list() {
 		FurnitureList furniture_list = ReadGameMemory<FurnitureList>(this->hProcess, baseAdd, OffsetMgr::Furniture_List);
-		vector<unsigned long long> ret;
+		std::vector<unsigned long long> ret;
 		for (int i = 0; i < 400; i++) {
 			if (furniture_list.objs[i] != 0) {
 				ret.emplace_back(furniture_list.objs[i]);
@@ -293,7 +292,7 @@ int FFProcess::UpdateOffset() {
 	char process3[128];
 	strcpy_s(process3, "ffxiv_dx11.exe");
 	if (SigScanner2.GetProcess(process3)) {
-		module mod = SigScanner2.GetModule(process2);
+		auto mod = SigScanner2.GetModule(process2);
 		dxgi_present_offset = SigScanner2.FindSignature(mod.dwBase, mod.dwSize, Present_Signature, Present_Mask);
 		dxgi_present_offset = dxgi_present_offset - 0x37;
 		Log() << "dxgi_present: " + int_to_hex(dxgi_present_offset) << std::endl;
@@ -302,7 +301,7 @@ int FFProcess::UpdateOffset() {
 	char process[128];
 	strcpy_s(process, "ffxiv_dx11.exe");
 	if (SigScanner.GetProcess(process)) {
-		module mod = SigScanner.GetModule(process);
+		auto mod = SigScanner.GetModule(process);
 		SIZE_T PA1 = SigScanner.FindSignature(mod.dwBase, mod.dwSize, PA1_Signature, PA1_Mask) - mod.dwBase;
 		SIZE_T PA2 = SigScanner.FindSignature(mod.dwBase, mod.dwSize, PA2_Signature, PA2_Mask) - mod.dwBase;
 		SIZE_T PA3 = SigScanner.FindSignature(mod.dwBase, mod.dwSize, PA3_Signature, PA3_Mask) - mod.dwBase;

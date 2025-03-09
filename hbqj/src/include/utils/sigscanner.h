@@ -11,7 +11,7 @@ using std::endl;
 using std::string;
 
 // datatype for a module in memory (dll, regular exe) 
-struct module
+struct memory_module
 {
 	SIZE_T dwBase, dwSize;
 };
@@ -19,7 +19,7 @@ struct module
 class SignatureScanner
 {
 public:
-    module TargetModule;  // Hold target module
+    memory_module TargetModule;  // Hold target module
 	HANDLE TargetProcess; // for target process
 	SIZE_T  TargetId;      // for target process
 
@@ -47,7 +47,7 @@ public:
 	}
 
 	// For getting information about the executing module
-	module GetModule(char* moduleName) {
+	memory_module GetModule(char* moduleName) {
 		HANDLE hmodule = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, TargetId);
 		MODULEENTRY32 mEntry;
 		mEntry.dwSize = sizeof(mEntry);
@@ -63,7 +63,7 @@ public:
 			}
 		} while (Module32Next(hmodule, &mEntry));
 
-		module mod = { (SIZE_T)false, (SIZE_T)false };
+		memory_module mod = { (SIZE_T)false, (SIZE_T)false };
 		return mod;
 	}
 
