@@ -8,9 +8,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-add_executable(hbqj_tests
-    main_test.cpp
-)
+ add_executable(hbqj_tests
+     main_test.cpp
+     signature_manager_test.cpp
+  "utils/string_utils_test.cpp" 
+  "signature_scanner_test.cpp")
 
 target_link_libraries(hbqj_tests
     PRIVATE
@@ -20,7 +22,7 @@ target_link_libraries(hbqj_tests
 
 target_include_directories(hbqj_tests
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/include
 )
 
 include(GoogleTest)

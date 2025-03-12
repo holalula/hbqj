@@ -5,6 +5,7 @@ set(PROJECT_NAME hbqj)
 ################################################################################
 set(SOURCE_FILES
     "src/dllmain.cpp"
+    "src/signature_scanner.cpp"
 )
 
 ################################################################################
@@ -32,9 +33,7 @@ endif()
 ################################################################################
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_include_directories(${PROJECT_NAME} PUBLIC
-        "$<$<CONFIG:Release>:"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
-        ">"
     )
 endif()
 
@@ -66,13 +65,15 @@ if(MSVC)
             $<$<CONFIG:Release>:
                 /Oi;
                 /Gy;
-                /Y-
+                /Y-;
+                /Zi
             >
             /permissive-;
             /sdl;
             /W3;
             ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
             ${DEFAULT_CXX_EXCEPTION_HANDLING}
+            /FC
         )
    endif()
    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
@@ -92,3 +93,9 @@ if(MSVC)
 endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+
+add_custom_command(TARGET hbqj POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/x64/Release/hbqj.dll"
+        "${CMAKE_BINARY_DIR}/hbqj/test/hbqj.dll"
+)
