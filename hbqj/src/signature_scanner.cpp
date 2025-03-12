@@ -2,8 +2,9 @@
 #include "utils/string_utils.h"
 
 namespace hbqj {
-	std::expected<Address, WinAPIErrorCode> SignatureScanner::find_signature(Address addr, SIZE_T size, std::span<const Byte> signature,
-		std::span<const Byte> mask) {
+	std::expected<Address, WinAPIErrorCode> SignatureScanner::find_signature(std::span<const Byte> signature,std::span<const Byte> mask) {
+		Address addr = target_module_.base;
+		Address size = target_module_.size;
 		std::vector<Byte> buffer(size);
 		SIZE_T bytesRead;
 

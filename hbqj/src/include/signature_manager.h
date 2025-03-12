@@ -8,7 +8,7 @@
 #include "error.h"
 
 namespace hbqj {
-	typedef unsigned long Address;
+	typedef unsigned __int64 Address;
 
 	enum class SignatureType {
 		PA1,

@@ -23,8 +23,7 @@ namespace hbqj {
 	public:
 		std::expected<ProcessModule, WinAPIErrorCode> get_process_module(std::string_view process_name, std::string_view module_name);
 
-		std::expected<Address, WinAPIErrorCode> find_signature(Address addr, SIZE_T size, std::span<const Byte> signature,
-			std::span<const Byte> mask);
+		std::expected<Address, WinAPIErrorCode> find_signature(std::span<const Byte> signature, std::span<const Byte> mask);
 
 	private:
 		std::expected<HANDLE, WinAPIErrorCode> get_process(std::string_view process_name);
