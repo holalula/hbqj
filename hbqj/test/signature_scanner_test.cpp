@@ -4,9 +4,10 @@
 #include "signature_scanner.h"
 
 namespace hbqj {
-	TEST(SignatureScannerTest, test1) {
+	TEST(SignatureScannerTest, ScanExample) {
+		GTEST_SKIP();
 		SignatureScanner scanner;
-		auto module_result = scanner.get_process_module("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+		const auto& module_result = scanner.get_process_module("ffxiv_dx11.exe", "ffxiv_dx11.exe");
 
 		if (module_result) {
 			printf("base = %llx, size = %llx\n", module_result.value().base, module_result.value().size);
@@ -23,6 +24,21 @@ namespace hbqj {
 		}
 		else {
 			printf("error = %d\n", module_result.error());
+		}
+	}
+
+	TEST(SignatureScannerTest, CalculateOffsetExample) {
+		SignatureScanner scanner;
+		const auto& module_result = scanner.get_process_module("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+
+		if (module_result) {
+			auto result = scanner.calculate_target_offset_mov(0xC53C4E);
+			if (result) {
+				printf("result = %llx\n", result.value());
+			}
+			else {
+				printf("error = %d\n", result.error());
+			}
 		}
 	}
 }

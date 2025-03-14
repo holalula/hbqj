@@ -19,11 +19,29 @@ namespace hbqj {
 		Address base, size;
 	};
 
+	// disable struct padding
+#pragma pack(push, 1)
+	struct CallInstruction {
+		Byte opcode;
+		int32_t offset;
+	};
+
+	struct MovInstruction {
+		Byte rex;
+		Byte opcode[2];
+		uint32_t offset;
+	};
+#pragma pack(pop)
+
 	class __declspec(dllexport) SignatureScanner {
 	public:
 		std::expected<ProcessModule, WinAPIErrorCode> get_process_module(std::string_view process_name, std::string_view module_name);
 
 		std::expected<Address, WinAPIErrorCode> find_signature(std::span<const Byte> signature, std::span<const Byte> mask);
+
+		std::expected<Address, WinAPIErrorCode> calculate_target_offset_call(Address offset);
+
+		std::expected<Address, WinAPIErrorCode> calculate_target_offset_mov(Address offset);
 
 	private:
 		std::expected<HANDLE, WinAPIErrorCode> get_process(std::string_view process_name);
@@ -45,6 +63,10 @@ namespace hbqj {
 
 			return value;
 
+		}
+
+		inline uint32_t convert_offset(const uint32_t* bytes) {
+			return *reinterpret_cast<const uint32_t*>(bytes);
 		}
 
 		ProcessModule target_module_;

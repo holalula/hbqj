@@ -2,7 +2,7 @@
 #include "utils/string_utils.h"
 
 namespace hbqj {
-	std::expected<Address, WinAPIErrorCode> SignatureScanner::find_signature(std::span<const Byte> signature,std::span<const Byte> mask) {
+	std::expected<Address, WinAPIErrorCode> SignatureScanner::find_signature(std::span<const Byte> signature, std::span<const Byte> mask) {
 		Address addr = target_module_.base;
 		Address size = target_module_.size;
 		std::vector<Byte> buffer(size);
@@ -93,5 +93,37 @@ namespace hbqj {
 		}
 
 		return true;
+	}
+
+	std::expected<Address, WinAPIErrorCode> SignatureScanner::calculate_target_offset_call(Address offset) {
+		// call instruction (near relative)
+		// E8 [32-bit offset]
+		// e.g. E8 12 34 56 78; call target (target = next_instruction + 0x78563412)
+		auto base_addr = target_module_.base;
+		const auto& read_result = read_memory<CallInstruction>(base_addr + offset);
+		if (!read_result) {
+			return std::unexpected(read_result.error());
+		}
+
+		const auto& inst = read_result.value();
+
+		// target = next inst addr + offset
+		return offset + sizeof(CallInstruction) + inst.offset;
+	}
+
+	std::expected<Address, WinAPIErrorCode> SignatureScanner::calculate_target_offset_mov(Address offset) {
+		// mov instruction (RIP relative)
+		// 48 8B 0D [32-bit offset]; mov rcx, [rip + offset]
+		// 48 8B 0D 12 34 56 78; mov rcx, [rip + 0x78563412]
+		auto base_addr = target_module_.base;
+		const auto& read_result = read_memory<MovInstruction>(base_addr + offset);
+		if (!read_result) {
+			return std::unexpected(read_result.error());
+		}
+
+		const auto& inst = read_result.value();
+
+		// target = next inst addr + offset
+		return offset + sizeof(MovInstruction) + convert_offset(&inst.offset);
 	}
 }
