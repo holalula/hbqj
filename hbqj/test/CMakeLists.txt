@@ -11,8 +11,10 @@ FetchContent_MakeAvailable(googletest)
  add_executable(hbqj_tests
      main_test.cpp
      signature_manager_test.cpp
-  "utils/string_utils_test.cpp" 
-  "signature_scanner_test.cpp")
+     utils/string_utils_test.cpp
+     signature_scanner_test.cpp
+     log_test.cpp
+ )
 
 target_link_libraries(hbqj_tests
     PRIVATE
