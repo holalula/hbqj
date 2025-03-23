@@ -5,11 +5,14 @@
 namespace hbqj {
 	void SignatureManager::Initialize() {
 		scanner_ = SignatureScanner{};
-		scanner_.GetProcessModule("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+
+		Process process;
+		process.GetProcessModule("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+		scanner_.Initialize(process);
 		for (auto& signature : signatures_) {
-			auto result = scanner_.FindSignature(signature.pattern, signature.mask);
+			const auto& result = scanner_.FindSignature(signature.pattern, signature.mask);
 			if (result) {
-				log.info("Found signature {}, address: {:x}", GetSigTypeStr(signature.type), scanner_.GetOffsetAddr(result.value()));
+				log.info("Found signature {}, address: {:x}", GetSigTypeStr(signature.type), scanner_.process_.GetOffsetAddr(result.value()));
 				signature_db_.insert({
 					signature.type,
 					Signature{.type = signature.type, .pattern = signature.pattern, .mask = signature.mask, .addr = result.value() }

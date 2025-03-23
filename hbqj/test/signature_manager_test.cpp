@@ -5,7 +5,6 @@
 
 namespace hbqj {
 	TEST(SignatureManagerTest, Example) {
-		GTEST_SKIP();
 		SignatureManager manager_;
 		manager_.Initialize();
 		auto result = manager_.GetSignature(SignatureType::BaseHouse);
