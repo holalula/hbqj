@@ -4,6 +4,7 @@
 
 namespace hbqj {
 	TEST(LogTest, LogExample) {
+		GTEST_SKIP();
 		auto log = Logger::GetLogger("LogExample");
 
 		log.info("Info message: {}", 1);

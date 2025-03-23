@@ -7,14 +7,15 @@ namespace hbqj {
 	TEST(SignatureScannerTest, ScanExample) {
 		GTEST_SKIP();
 		SignatureScanner scanner;
-		const auto& module_result = scanner.get_process_module("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+		const auto& module_result = scanner.GetProcessModule("ffxiv_dx11.exe", "ffxiv_dx11.exe");
 
 		if (module_result) {
 			printf("base = %llx, size = %llx\n", module_result.value().base, module_result.value().size);
-			auto sig_result = scanner.find_signature(
+			auto sig_result = scanner.FindSignature(
 				// C6 83 83 01 00 00 00
-				std::span<const Byte>(reinterpret_cast<const Byte*>("\xC6\x83\x83\x01\x00\x00\x00"), 7),
-				std::span<const Byte>(reinterpret_cast<const Byte*>("xxxxxxx"), 7));
+				SignatureScanner::MakePattern("\xC6\x83\x83\x01\x00\x00\x00"),
+				"xxxxxxx"
+			);
 			if (sig_result) {
 				printf("signature = %llx\n", sig_result.value() - module_result.value().base);
 			}
@@ -30,10 +31,10 @@ namespace hbqj {
 	TEST(SignatureScannerTest, CalculateOffsetExample) {
 		GTEST_SKIP();
 		SignatureScanner scanner;
-		const auto& module_result = scanner.get_process_module("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+		const auto& module_result = scanner.GetProcessModule("ffxiv_dx11.exe", "ffxiv_dx11.exe");
 
 		if (module_result) {
-			auto result = scanner.calculate_target_offset_mov(0xC53C4E);
+			auto result = scanner.CalculateTargetOffsetMov(0xC53C4E);
 			if (result) {
 				printf("result = %llx\n", result.value());
 			}

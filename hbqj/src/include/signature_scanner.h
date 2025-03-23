@@ -9,9 +9,8 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-#include "signature_manager.h"
-
 namespace hbqj {
+	typedef unsigned __int64 Address;
 	typedef DWORD WinAPIErrorCode;
 	typedef uint8_t Byte;
 
@@ -35,27 +34,36 @@ namespace hbqj {
 
 	class __declspec(dllexport) SignatureScanner {
 	public:
-		std::expected<ProcessModule, WinAPIErrorCode> get_process_module(std::string_view process_name, std::string_view module_name);
+		std::expected<ProcessModule, WinAPIErrorCode> GetProcessModule(std::string_view process_name, std::string_view module_name);
 
-		std::expected<Address, WinAPIErrorCode> find_signature(std::span<const Byte> signature, std::span<const Byte> mask);
+		std::expected<Address, WinAPIErrorCode> FindSignature(std::span<const Byte> signature, std::string_view mask);
 
-		std::expected<Address, WinAPIErrorCode> calculate_target_offset_call(Address offset);
+		std::expected<Address, WinAPIErrorCode> CalculateTargetOffsetCall(Address offset);
 
-		std::expected<Address, WinAPIErrorCode> calculate_target_offset_mov(Address offset);
+		std::expected<Address, WinAPIErrorCode> CalculateTargetOffsetMov(Address offset);
+
+		template<size_t N>
+		inline static std::span<const Byte> MakePattern(const char(&str)[N]) {
+			return std::span<const Byte>(reinterpret_cast<const Byte*>(str), N - 1);
+		}
+
+		inline const Address GetOffsetAddr(const Address addr) const {
+			return addr - target_module_.base;
+		}
 
 	private:
-		std::expected<HANDLE, WinAPIErrorCode> get_process(std::string_view process_name);
-		std::expected<ProcessModule, WinAPIErrorCode> get_module(std::string_view module_name);
-		bool compare_memory(std::span<const Byte> data, std::span<const Byte> pattern, std::span<const Byte> mask);
+		std::expected<HANDLE, WinAPIErrorCode> GetProcess(std::string_view process_name);
+		std::expected<ProcessModule, WinAPIErrorCode> GetModule(std::string_view module_name);
+		bool CompareMemory(std::span<const Byte> data, std::span<const Byte> pattern, std::string_view mask);
 		template <typename T>
-		std::expected<bool, WinAPIErrorCode> write_memory(Address addr, const T& value) {
+		std::expected<bool, WinAPIErrorCode> WriteMemory(Address addr, const T& value) {
 			if (!WriteProcessMemory(this->target_process_, reinterpret_cast<LPVOID>(addr), &value, sizeof(T), nullptr)) {
 				return std::unexpected(GetLastError());
 			}
 			return true;
 		}
 		template <typename T>
-		std::expected<T, WinAPIErrorCode> read_memory(Address addr) {
+		std::expected<T, WinAPIErrorCode> ReadMemory(Address addr) {
 			T value{};
 			if (!ReadProcessMemory(this->target_process_, reinterpret_cast<LPCVOID>(addr), &value, sizeof(T), nullptr)) {
 				return std::unexpected(GetLastError());
@@ -65,7 +73,7 @@ namespace hbqj {
 
 		}
 
-		inline uint32_t convert_offset(const uint32_t* bytes) {
+		inline uint32_t ConvertOffset(const uint32_t* bytes) {
 			return *reinterpret_cast<const uint32_t*>(bytes);
 		}
 

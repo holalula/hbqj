@@ -6,6 +6,7 @@ set(PROJECT_NAME hbqj)
 set(SOURCE_FILES
     "src/dllmain.cpp"
     "src/signature_scanner.cpp"
+    "src/signature_manager.cpp"
 )
 
 ################################################################################

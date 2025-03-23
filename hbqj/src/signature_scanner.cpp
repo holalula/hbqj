@@ -2,7 +2,7 @@
 #include "utils/string_utils.h"
 
 namespace hbqj {
-	std::expected<Address, WinAPIErrorCode> SignatureScanner::find_signature(std::span<const Byte> signature, std::span<const Byte> mask) {
+	std::expected<Address, WinAPIErrorCode> SignatureScanner::FindSignature(std::span<const Byte> signature, std::string_view mask) {
 		Address addr = target_module_.base;
 		Address size = target_module_.size;
 		std::vector<Byte> buffer(size);
@@ -14,21 +14,21 @@ namespace hbqj {
 		}
 
 		for (size_t i = 0; i < bytesRead - signature.size(); ++i) {
-			if (compare_memory(std::span(buffer).subspan(i), signature, mask)) {
+			if (CompareMemory(std::span(buffer).subspan(i), signature, mask)) {
 				return addr + i;
 			}
 		}
 		return std::unexpected(ERROR_NOT_FOUND);
 	}
 
-	std::expected<ProcessModule, WinAPIErrorCode> SignatureScanner::get_process_module(std::string_view process_name, std::string_view module_name) {
-		auto handle = this->get_process(process_name);
+	std::expected<ProcessModule, WinAPIErrorCode> SignatureScanner::GetProcessModule(std::string_view process_name, std::string_view module_name) {
+		auto handle = this->GetProcess(process_name);
 		if (!handle.has_value()) {
 			return std::unexpected(handle.error());
 		}
 		this->target_process_ = handle.value();
 
-		auto module = this->get_module(module_name);
+		auto module = this->GetModule(module_name);
 		if (!module.has_value()) {
 			return std::unexpected(module.error());
 		}
@@ -37,7 +37,7 @@ namespace hbqj {
 		return this->target_module_;
 	}
 
-	std::expected<HANDLE, WinAPIErrorCode> SignatureScanner::get_process(std::string_view process_name) {
+	std::expected<HANDLE, WinAPIErrorCode> SignatureScanner::GetProcess(std::string_view process_name) {
 		auto handle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 		if (handle == INVALID_HANDLE_VALUE) {
 			return std::unexpected(GetLastError());
@@ -58,7 +58,7 @@ namespace hbqj {
 		return std::unexpected(GetLastError());
 	}
 
-	std::expected<ProcessModule, WinAPIErrorCode> SignatureScanner::get_module(std::string_view module_name) {
+	std::expected<ProcessModule, WinAPIErrorCode> SignatureScanner::GetModule(std::string_view module_name) {
 		auto hmodule = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, this->target_process_id_);
 		if (hmodule == INVALID_HANDLE_VALUE) {
 			return std::unexpected(GetLastError());
@@ -78,7 +78,7 @@ namespace hbqj {
 		return std::unexpected(GetLastError());
 	}
 
-	bool SignatureScanner::compare_memory(std::span<const Byte> data, std::span<const Byte> pattern, std::span<const Byte> mask) {
+	bool SignatureScanner::CompareMemory(std::span<const Byte> data, std::span<const Byte> pattern, std::string_view mask) {
 		if (data.size() < pattern.size()) {
 			return false;
 		}
@@ -95,12 +95,12 @@ namespace hbqj {
 		return true;
 	}
 
-	std::expected<Address, WinAPIErrorCode> SignatureScanner::calculate_target_offset_call(Address offset) {
+	std::expected<Address, WinAPIErrorCode> SignatureScanner::CalculateTargetOffsetCall(Address offset) {
 		// call instruction (near relative)
 		// E8 [32-bit offset]
 		// e.g. E8 12 34 56 78; call target (target = next_instruction + 0x78563412)
 		auto base_addr = target_module_.base;
-		const auto& read_result = read_memory<CallInstruction>(base_addr + offset);
+		const auto& read_result = ReadMemory<CallInstruction>(base_addr + offset);
 		if (!read_result) {
 			return std::unexpected(read_result.error());
 		}
@@ -111,12 +111,12 @@ namespace hbqj {
 		return offset + sizeof(CallInstruction) + inst.offset;
 	}
 
-	std::expected<Address, WinAPIErrorCode> SignatureScanner::calculate_target_offset_mov(Address offset) {
+	std::expected<Address, WinAPIErrorCode> SignatureScanner::CalculateTargetOffsetMov(Address offset) {
 		// mov instruction (RIP relative)
 		// 48 8B 0D [32-bit offset]; mov rcx, [rip + offset]
 		// 48 8B 0D 12 34 56 78; mov rcx, [rip + 0x78563412]
 		auto base_addr = target_module_.base;
-		const auto& read_result = read_memory<MovInstruction>(base_addr + offset);
+		const auto& read_result = ReadMemory<MovInstruction>(base_addr + offset);
 		if (!read_result) {
 			return std::unexpected(read_result.error());
 		}
@@ -124,6 +124,6 @@ namespace hbqj {
 		const auto& inst = read_result.value();
 
 		// target = next inst addr + offset
-		return offset + sizeof(MovInstruction) + convert_offset(&inst.offset);
+		return offset + sizeof(MovInstruction) + ConvertOffset(&inst.offset);
 	}
 }

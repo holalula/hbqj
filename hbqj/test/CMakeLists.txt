@@ -13,6 +13,7 @@ FetchContent_MakeAvailable(googletest)
      signature_manager_test.cpp
      utils/string_utils_test.cpp
      signature_scanner_test.cpp
+     signature_manager_test.cpp
      log_test.cpp
  )
 
