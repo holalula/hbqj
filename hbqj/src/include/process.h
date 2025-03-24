@@ -16,7 +16,9 @@ namespace hbqj {
 
 	class __declspec(dllexport) Process {
 	public:
-		Process() = default;
+		Process() {
+			GetProcessModule("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+		}
 
 		Process(std::string_view process_name, std::string_view module_name) {
 			GetProcessModule(process_name, module_name);

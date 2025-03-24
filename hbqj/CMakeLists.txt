@@ -8,6 +8,7 @@ set(SOURCE_FILES
     "src/signature_scanner.cpp"
     "src/signature_manager.cpp"
     "src/process.cpp"
+    "src/memory.cpp"
 )
 
 ################################################################################

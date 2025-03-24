@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(googletest)
      signature_scanner_test.cpp
      signature_manager_test.cpp
      log_test.cpp
+     memory_test.cpp
  )
 
 target_link_libraries(hbqj_tests
