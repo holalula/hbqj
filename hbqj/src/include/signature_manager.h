@@ -4,6 +4,7 @@
 #include <expected>
 #include <string>
 #include <string_view>
+#include <memory>
 #include <unordered_map>
 
 #include "log.h"
@@ -38,7 +39,7 @@ namespace hbqj {
 
 	class __declspec(dllexport) SignatureManager {
 	public:
-		void Initialize();
+		void Initialize(std::shared_ptr<Process> process);
 		std::expected<const Signature*, Error> GetSignature(SignatureType type);
 
 		inline std::string_view GetSigTypeStr(SignatureType type) {

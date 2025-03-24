@@ -1,11 +1,12 @@
 #pragma once
 
+#include <expected>
 #include <iostream>
 #include <string>
 #include <string_view>
 #include <span>
 #include <vector>
-#include <expected>
+#include <memory>
 #include <Windows.h>
 #include <TlHelp32.h>
 
@@ -28,7 +29,7 @@ namespace hbqj {
 
 	class __declspec(dllexport) SignatureScanner {
 	public:
-		std::expected<void, WinAPIErrorCode> Initialize(Process process);
+		std::expected<void, WinAPIErrorCode> Initialize(std::shared_ptr<Process> process);
 
 		std::expected<Address, WinAPIErrorCode> FindSignature(std::span<const Byte> signature, std::string_view mask);
 
@@ -41,7 +42,7 @@ namespace hbqj {
 			return std::span<const Byte>(reinterpret_cast<const Byte*>(str), N - 1);
 		}
 
-		Process process_;
+		std::shared_ptr<Process> process_;
 	private:
 		bool CompareMemory(std::span<const Byte> data, std::span<const Byte> pattern, std::string_view mask);
 
