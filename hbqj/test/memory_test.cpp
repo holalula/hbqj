@@ -4,7 +4,8 @@
 #include "memory.h"
 
 namespace hbqj {
-	TEST(MemoryTest, Example) {
+	TEST(MemoryTest, GetActivePositionAndRotationExample) {
+		GTEST_SKIP();
 		auto process = std::make_shared<Process>();
 		Memory memory;
 		memory.Initialize(process);
@@ -24,6 +25,16 @@ namespace hbqj {
 		}
 		else {
 			process->log.error("{}", rotation_result.error());
+		}
+	}
+
+	TEST(MemoryTest, SetActivePositionExample) {
+		GTEST_SKIP();
+		auto process = std::make_shared<Process>();
+		Memory memory;
+		memory.Initialize(process);
+		if (memory.SetActivePosition(1., 1., 1.)) {
+			process->log.info("Updated.");
 		}
 	}
 }

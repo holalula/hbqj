@@ -54,4 +54,28 @@ namespace hbqj {
 
 		return position;
 	}
+
+	std::expected<Position, Error> Memory::SetActivePosition(std::optional<float> x, std::optional<float> y, std::optional<float> z) {
+		TRY(position,
+			GetActivePosition());
+
+		if (x) {
+			position.x = x.value();
+		}
+
+		if (y) {
+			position.y = y.value();
+		}
+
+		if (z) {
+			position.z = z.value();
+		}
+
+		TRY(active_housing_item,
+			GetActiveHousingItem());
+
+		TRY(_, process_->WriteMemory<Position>(active_housing_item + 0x50, position));
+
+		return position;
+	}
 }

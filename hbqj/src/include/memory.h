@@ -1,6 +1,7 @@
 #pragma once
 
 #include <expected>
+#include <optional>
 
 #include "error.h"
 #include "signature_manager.h"
@@ -40,6 +41,8 @@ namespace hbqj {
 		std::expected<Position, Error> GetActivePosition();
 
 		std::expected<Quaternion, Error> GetActiveRotation();
+
+		std::expected<Position, Error> SetActivePosition(std::optional<float> x, std::optional<float> y, std::optional<float> z);
 	private:
 		SignatureManager signature_manager_;
 		Logger log = Logger::GetLogger("Memory");
