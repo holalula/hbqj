@@ -35,36 +35,6 @@ namespace hbqj {
 		return active_housing_item_addr;
 	}
 
-	std::expected<float, Error> Memory::GetActivePositionX() {
-		TRY(active_housing_item,
-			GetActiveHousingItem());
-
-		TRY(v,
-			process_->ReadMemory<float>(active_housing_item + 0x50));
-
-		return v;
-	}
-
-	std::expected<float, Error> Memory::GetActivePositionY() {
-		TRY(active_housing_item,
-			GetActiveHousingItem());
-
-		TRY(v,
-			process_->ReadMemory<float>(active_housing_item + 0x50 + 0x4));
-
-		return v;
-	}
-
-	std::expected<float, Error> Memory::GetActivePositionZ() {
-		TRY(active_housing_item,
-			GetActiveHousingItem());
-
-		TRY(v,
-			process_->ReadMemory<float>(active_housing_item + 0x50 + 0x4 + 0x4));
-
-		return v;
-	}
-
 	std::expected<Quaternion, Error> Memory::GetActiveRotation() {
 		TRY(active_housing_item,
 			GetActiveHousingItem());
@@ -76,13 +46,12 @@ namespace hbqj {
 	}
 
 	std::expected<Position, Error> Memory::GetActivePosition() {
-		TRY(x,
-			GetActivePositionX());
-		TRY(y,
-			GetActivePositionY());
-		TRY(z,
-			GetActivePositionZ());
+		TRY(active_housing_item,
+			GetActiveHousingItem());
 
-		return Position{ .x = x, .y = y, .z = z };
+		TRY(position,
+			process_->ReadMemory<Position>(active_housing_item + 0x50));
+
+		return position;
 	}
 }

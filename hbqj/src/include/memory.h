@@ -37,12 +37,6 @@ namespace hbqj {
 
 		std::expected<Address, Error> GetActiveHousingItem();
 
-		std::expected<float, Error> GetActivePositionX();
-
-		std::expected<float, Error> GetActivePositionY();
-
-		std::expected<float, Error> GetActivePositionZ();
-
 		std::expected<Position, Error> GetActivePosition();
 
 		std::expected<Quaternion, Error> GetActiveRotation();
