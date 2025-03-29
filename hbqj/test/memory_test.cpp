@@ -8,9 +8,22 @@ namespace hbqj {
 		auto process = std::make_shared<Process>();
 		Memory memory;
 		memory.Initialize(process);
-		// memory.PlaceAnywhere(true);
-		auto position_result = memory.GetPosition();
-		auto position = position_result.value();
-		process->log.info("{}, {}, {}", position->x, position->y, position->z);
+		auto position_result = memory.GetActivePosition();
+		if (position_result) {
+			auto position = position_result.value();
+			process->log.info("Position: {}, {}, {}", position.x, position.y, position.z);
+		}
+		else {
+			process->log.error("{}", position_result.error());
+		}
+
+		auto rotation_result = memory.GetActiveRotation();
+		if (rotation_result) {
+			auto rotation = rotation_result.value();
+			process->log.info("Rotation: {}, {}, {}, {}", rotation.x, rotation.y, rotation.z, rotation.w);
+		}
+		else {
+			process->log.error("{}", rotation_result.error());
+		}
 	}
 }

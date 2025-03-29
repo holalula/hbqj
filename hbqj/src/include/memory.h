@@ -1,18 +1,28 @@
 #pragma once
 
+#include <expected>
+
 #include "error.h"
 #include "signature_manager.h"
 #include "process.h"
-
-// Binds the value of an expected to a variable if successful, otherwise returns the error
-#define TRY(var, expr)                                    \
-    auto&& _temp_##var = (expr);                              \
-    if (!_temp_##var) [[unlikely]] {                          \
-        return std::unexpected(_temp_##var.error());          \
-    }                                                         \
-    auto& var = *_temp_##var.value()
+#include "macro.h"
 
 namespace hbqj {
+#pragma pack(push, 1)
+	struct Position {
+		float x;
+		float y;
+		float z;
+	};
+
+	struct Quaternion {
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+#pragma pack(pop)
+
 	class __declspec(dllexport) Memory {
 	public:
 		std::expected<void, Error> Initialize(std::shared_ptr<Process> process) {
@@ -24,6 +34,18 @@ namespace hbqj {
 		std::expected<void, Error> PlaceAnywhere(bool enable);
 
 		std::shared_ptr<Process> process_;
+
+		std::expected<Address, Error> GetActiveHousingItem();
+
+		std::expected<float, Error> GetActivePositionX();
+
+		std::expected<float, Error> GetActivePositionY();
+
+		std::expected<float, Error> GetActivePositionZ();
+
+		std::expected<Position, Error> GetActivePosition();
+
+		std::expected<Quaternion, Error> GetActiveRotation();
 	private:
 		SignatureManager signature_manager_;
 		Logger log = Logger::GetLogger("Memory");

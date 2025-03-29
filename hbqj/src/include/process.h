@@ -54,9 +54,7 @@ namespace hbqj {
 			if (!ReadProcessMemory(target_process_, reinterpret_cast<LPCVOID>(addr), &value, sizeof(T), nullptr)) {
 				return std::unexpected(WinAPIError{ .error = GetLastError() });
 			}
-
 			return value;
-
 		}
 
 		constexpr Address GetBaseAddr() const {

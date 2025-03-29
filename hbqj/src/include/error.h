@@ -25,7 +25,7 @@ struct std::formatter<hbqj::Error> : std::formatter<std::string> {
 				result = e.message;
 			}
 			else if constexpr (std::is_same_v<std::decay_t<decltype(e)>, hbqj::NullPointerError>) {
-				result = e.message;
+				result = std::format("Null Pointer at {}", e.message);
 			}
 			else if constexpr (std::is_same_v<std::decay_t<decltype(e)>, hbqj::WinAPIError>) {
 				result = std::format("WinAPI Error: {}", e.error);
