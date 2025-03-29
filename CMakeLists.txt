@@ -84,6 +84,14 @@ include(CMake/GlobalSettingsInclude.cmake OPTIONAL)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ################################################################################
+# Include JSON lib
+################################################################################
+include(FetchContent)
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
+################################################################################
 # Sub-projects
 ################################################################################
 add_subdirectory(bgpop)

@@ -16,6 +16,8 @@ set(SOURCE_FILES
 ################################################################################
 add_library(hbqj SHARED ${SOURCE_FILES})
 
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
+
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/include/pch.h>"
 )

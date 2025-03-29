@@ -4,17 +4,22 @@
 #include <format>
 #include <optional>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "error.h"
 #include "signature_manager.h"
 #include "process.h"
 #include "macro.h"
 
+using json = nlohmann::json;
+
 namespace hbqj {
 	struct Position {
 		float x;
 		float y;
 		float z;
+
+		NLOHMANN_DEFINE_TYPE_INTRUSIVE(Position, x, y, z);
 	};
 
 	struct Quaternion {
@@ -22,6 +27,8 @@ namespace hbqj {
 		float y;
 		float z;
 		float w;
+
+		NLOHMANN_DEFINE_TYPE_INTRUSIVE(Quaternion, x, y, z, w);
 	};
 
 	struct HousingItem {
@@ -33,6 +40,8 @@ namespace hbqj {
 		Position position;
 		float rotation;
 		Byte color;
+
+		NLOHMANN_DEFINE_TYPE_INTRUSIVE(HousingItem, type, position, rotation, color);
 	};
 
 	class __declspec(dllexport) Memory {
