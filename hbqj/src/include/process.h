@@ -5,10 +5,25 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
+#include "error.h"
+#include "log.h"
+
 namespace hbqj {
 	typedef unsigned __int64 Address;
-	typedef DWORD WinAPIErrorCode;
 	typedef uint8_t Byte;
+
+#pragma pack(push, 1)
+	struct CallInstruction {
+		Byte opcode;
+		int32_t offset;
+	};
+
+	struct MovInstruction {
+		Byte rex;
+		Byte opcode[2];
+		uint32_t offset;
+	};
+#pragma pack(pop)
 
 	struct ProcessModule {
 		Address base, size;
@@ -24,20 +39,20 @@ namespace hbqj {
 			GetProcessModule(process_name, module_name);
 		}
 
-		std::expected<ProcessModule, WinAPIErrorCode> GetProcessModule(std::string_view process_name, std::string_view module_name);
+		std::expected<ProcessModule, Error> GetProcessModule(std::string_view process_name, std::string_view module_name);
 
 		template <typename T>
-		std::expected<bool, WinAPIErrorCode> WriteMemory(Address addr, const T& value) {
+		std::expected<bool, Error> WriteMemory(Address addr, const T& value) {
 			if (!WriteProcessMemory(target_process_, reinterpret_cast<LPVOID>(addr), &value, sizeof(T), nullptr)) {
-				return std::unexpected(GetLastError());
+				return std::unexpected(WinAPIError{ .error = GetLastError() });
 			}
 			return true;
 		}
 		template <typename T>
-		std::expected<T, WinAPIErrorCode> ReadMemory(Address addr) {
+		std::expected<T, Error> ReadMemory(Address addr) {
 			T value{};
 			if (!ReadProcessMemory(target_process_, reinterpret_cast<LPCVOID>(addr), &value, sizeof(T), nullptr)) {
-				return std::unexpected(GetLastError());
+				return std::unexpected(WinAPIError{ .error = GetLastError() });
 			}
 
 			return value;
@@ -52,11 +67,20 @@ namespace hbqj {
 			return addr - target_module_.base;
 		}
 
+		std::expected<Address, Error> CalculateTargetOffsetCall(Address offset);
+
+		std::expected<Address, Error> CalculateTargetOffsetMov(Address offset);
+
 		ProcessModule target_module_;
 		HANDLE target_process_;
 		SIZE_T target_process_id_;
+		Logger log = Logger::GetLogger("Process");
 	private:
-		std::expected<HANDLE, WinAPIErrorCode> GetProcess(std::string_view process_name);
-		std::expected<ProcessModule, WinAPIErrorCode> GetModule(std::string_view module_name);
+		std::expected<HANDLE, Error> GetProcess(std::string_view process_name);
+		std::expected<ProcessModule, Error> GetModule(std::string_view module_name);
+
+		inline uint32_t ConvertOffset(const uint32_t* bytes) {
+			return *reinterpret_cast<const uint32_t*>(bytes);
+		}
 	};
 }

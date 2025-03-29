@@ -34,7 +34,7 @@ namespace hbqj {
 		const auto& module_result = scanner.Initialize(process);
 
 		if (module_result) {
-			auto result = scanner.CalculateTargetOffsetMov(0xC53C4E);
+			auto result = process->CalculateTargetOffsetMov(0xC53C4E);
 			if (result) {
 				printf("result = %llx\n", result.value());
 			}

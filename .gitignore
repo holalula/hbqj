@@ -30,3 +30,7 @@ CMakeSettings.json
 /client/*json
 /client/fur
 /client/color
+
+/.idea
+/cmake-build-debug
+/cmake-build-release

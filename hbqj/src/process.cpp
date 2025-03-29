@@ -2,7 +2,7 @@
 #include "utils/string_utils.h"
 
 namespace hbqj {
-	std::expected<ProcessModule, WinAPIErrorCode> Process::GetProcessModule(std::string_view process_name, std::string_view module_name) {
+	std::expected<ProcessModule, Error> Process::GetProcessModule(std::string_view process_name, std::string_view module_name) {
 		auto handle = GetProcess(process_name);
 		if (!handle.has_value()) {
 			return std::unexpected(handle.error());
@@ -18,10 +18,10 @@ namespace hbqj {
 		return target_module_;
 	}
 
-	std::expected<HANDLE, WinAPIErrorCode> Process::GetProcess(std::string_view process_name) {
+	std::expected<HANDLE, Error> Process::GetProcess(std::string_view process_name) {
 		auto handle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 		if (handle == INVALID_HANDLE_VALUE) {
-			return std::unexpected(GetLastError());
+			return std::unexpected(WinAPIError{ .error = GetLastError() });
 		}
 
 		PROCESSENTRY32W entry{ .dwSize = sizeof(PROCESSENTRY32W) };
@@ -36,13 +36,13 @@ namespace hbqj {
 		} while (Process32NextW(handle, &entry));
 
 		CloseHandle(handle);
-		return std::unexpected(GetLastError());
+		return std::unexpected(WinAPIError{ .error = GetLastError() });
 	}
 
-	std::expected<ProcessModule, WinAPIErrorCode> Process::GetModule(std::string_view module_name) {
+	std::expected<ProcessModule, Error> Process::GetModule(std::string_view module_name) {
 		auto hmodule = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, target_process_id_);
 		if (hmodule == INVALID_HANDLE_VALUE) {
-			return std::unexpected(GetLastError());
+			return std::unexpected(WinAPIError{ .error = GetLastError() });
 		}
 
 		MODULEENTRY32W mEntry{ .dwSize = sizeof(MODULEENTRY32W) };
@@ -56,6 +56,38 @@ namespace hbqj {
 		} while (Module32NextW(hmodule, &mEntry));
 
 		CloseHandle(hmodule);
-		return std::unexpected(GetLastError());
+		return std::unexpected(WinAPIError{ .error = GetLastError() });
+	}
+
+	std::expected<Address, Error> Process::CalculateTargetOffsetCall(Address offset) {
+		// call instruction (near relative)
+		// E8 [32-bit offset]
+		// e.g. E8 12 34 56 78; call target (target = next_instruction + 0x78563412)
+		auto base_addr = target_module_.base;
+		const auto& read_result = ReadMemory<CallInstruction>(base_addr + offset);
+		if (!read_result) {
+			return std::unexpected(read_result.error());
+		}
+
+		const auto& inst = read_result.value();
+
+		// target = next inst addr + offset
+		return offset + sizeof(CallInstruction) + inst.offset;
+	}
+
+	std::expected<Address, Error> Process::CalculateTargetOffsetMov(Address offset) {
+		// mov instruction (RIP relative)
+		// 48 8B 0D [32-bit offset]; mov rcx, [rip + offset]
+		// 48 8B 0D 12 34 56 78; mov rcx, [rip + 0x78563412]
+		auto base_addr = target_module_.base;
+		const auto& read_result = ReadMemory<MovInstruction>(base_addr + offset);
+		if (!read_result) {
+			return std::unexpected(read_result.error());
+		}
+
+		const auto& inst = read_result.value();
+
+		// target = next inst addr + offset
+		return offset + sizeof(MovInstruction) + ConvertOffset(&inst.offset);
 	}
 }

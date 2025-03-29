@@ -8,6 +8,9 @@ namespace hbqj {
 		auto process = std::make_shared<Process>();
 		Memory memory;
 		memory.Initialize(process);
-		memory.PlaceAnywhere(true);
+		// memory.PlaceAnywhere(true);
+		auto position_result = memory.GetPosition();
+		auto position = position_result.value();
+		process->log.info("{}, {}, {}", position->x, position->y, position->z);
 	}
 }
