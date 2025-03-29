@@ -37,4 +37,20 @@ namespace hbqj {
 			process->log.info("Updated.");
 		}
 	}
+
+	TEST(MemoryTest, GetFurnitureListExample) {
+		GTEST_SKIP();
+		auto process = std::make_shared<Process>();
+		Memory memory;
+		memory.Initialize(process);
+		auto result = memory.GetFurnitureList();
+		if (result.has_value()) {
+			for (const auto& item : result.value()) {
+				process->log.info("{}", item);
+			}
+		}
+		else {
+			process->log.error("{}", result.error());
+		}
+	}
 }

@@ -78,4 +78,45 @@ namespace hbqj {
 
 		return position;
 	}
+
+	std::expected<std::vector<HousingItem>, Error> Memory::GetFurnitureList() {
+		TRY(housing_module_signature,
+			signature_manager_.GetSignature(SignatureType::HousingModule));
+
+		TRY(housing_module_offset,
+			process_->CalculateTargetOffsetMov(housing_module_signature->addr - process_->GetBaseAddr()));
+
+		TRY(housing_module_addr,
+			process_->ReadMemory<Address>(housing_module_offset + process_->GetBaseAddr()));
+
+		TRY(indoor_housing_module,
+			process_->ReadMemory<Address>(housing_module_addr + 0x10));
+
+		if (!indoor_housing_module) {
+			return std::unexpected(NullPointerError{ .message = "indoor_housing_module" });
+		}
+
+		const auto item_start_addr = indoor_housing_module + 0x8980;
+
+		std::vector<HousingItem> items;
+		for (int i = 0; i < 400; i++) {
+			Address item_ptr_addr = item_start_addr + i * sizeof(Address);
+			if (!item_ptr_addr) continue;
+			const auto& item_addr = process_->ReadMemory<Address>(item_ptr_addr);
+			if (!item_addr) continue;
+
+			const auto& type_result = process_->ReadMemory<uint32_t>(item_addr.value() + 0x80);
+			if (!type_result) continue;
+			const auto& position_result = process_->ReadMemory<Position>(item_addr.value() + 0xB0);
+			if (!position_result) continue;
+			const auto& rotation_result = process_->ReadMemory<float>(item_addr.value() + 0xC0);
+			if (!rotation_result) continue;
+			const auto& color_result = process_->ReadMemory<Byte>(item_addr.value() + 0x1B0);
+			if (!color_result) continue;
+
+			items.emplace_back(type_result.value(), position_result.value(), rotation_result.value(), color_result.value());
+		}
+
+		return items;
+	}
 }
