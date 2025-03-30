@@ -10,6 +10,7 @@ set(SOURCE_FILES
     "src/process.cpp"
     "src/memory.cpp"
     "src/file.cpp"
+    "src/hook.cpp"
 )
 
 ################################################################################

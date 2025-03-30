@@ -30,12 +30,13 @@ namespace hbqj {
 			if (process_name == utf16_to_utf8(entry.szExeFile)) {
 				target_process_id_ = entry.th32ProcessID;
 				CloseHandle(handle);
-				target_process_ = OpenProcess(PROCESS_ALL_ACCESS, false, target_process_id_);
+				target_process_ = OpenProcess(PROCESS_ALL_ACCESS, true, target_process_id_);
 				return target_process_;
 			}
 		} while (Process32NextW(handle, &entry));
 
 		CloseHandle(handle);
+		log.error("Process [{}] was not found.", process_name);
 		return std::unexpected(WinAPIError{ .error = GetLastError() });
 	}
 

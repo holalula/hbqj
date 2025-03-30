@@ -12,10 +12,13 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		OutputDebugStringA("[bgpop] DLL_PROCESS_ATTACH");
 		break;
 	}
+	case DLL_PROCESS_DETACH: {
+		OutputDebugStringA("[bgpop] DLL_PROCESS_DETACH");
+		break;
+	}
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
-	case DLL_PROCESS_DETACH:
-		OutputDebugStringA("[bgpop] DLL_PROCESS_DETACH");
+	default:
 		break;
 	}
 	return TRUE;

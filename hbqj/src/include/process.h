@@ -48,6 +48,15 @@ namespace hbqj {
 			}
 			return true;
 		}
+
+		std::expected<size_t, Error> WriteMemory(Address addr, const wchar_t* str) {
+			size_t len = wcslen(str) + 1;
+			if (!WriteProcessMemory(target_process_, reinterpret_cast<LPVOID>(addr), str, len * sizeof(wchar_t), nullptr)) {
+				return std::unexpected(WinAPIError{ .error = GetLastError() });
+			}
+			return len * sizeof(wchar_t);
+		}
+
 		template <typename T>
 		std::expected<T, Error> ReadMemory(Address addr) {
 			T value{};
@@ -69,12 +78,13 @@ namespace hbqj {
 
 		std::expected<Address, Error> CalculateTargetOffsetMov(Address offset);
 
+		std::expected<HANDLE, Error> GetProcess(std::string_view process_name);
+
 		ProcessModule target_module_;
 		HANDLE target_process_;
 		SIZE_T target_process_id_;
 		Logger log = Logger::GetLogger("Process");
 	private:
-		std::expected<HANDLE, Error> GetProcess(std::string_view process_name);
 		std::expected<ProcessModule, Error> GetModule(std::string_view module_name);
 
 		inline uint32_t ConvertOffset(const uint32_t* bytes) {

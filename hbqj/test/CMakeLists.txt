@@ -18,7 +18,10 @@ FetchContent_MakeAvailable(googletest)
      memory_test.cpp
      macro_test.cpp
      file_test.cpp
+     hook_test.cpp
  )
+
+# add_dependencies(hbqj_tests bgpop)
 
 target_link_libraries(hbqj_tests
     PRIVATE
