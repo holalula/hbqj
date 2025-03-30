@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(googletest)
      log_test.cpp
      memory_test.cpp
      macro_test.cpp
+     file_test.cpp
  )
 
 target_link_libraries(hbqj_tests
