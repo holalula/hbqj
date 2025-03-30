@@ -15,18 +15,9 @@ set(__ImGuizmo
     "src/ImGuizmo/ImGuizmo.cpp"
 )
 
-set(__mhook
-    "src/include/mhook/disasm-lib/cpu.c"
-    "src/include/mhook/disasm-lib/disasm.c"
-    "src/include/mhook/disasm-lib/disasm_x86.c"
-    "src/include/mhook/disasm-lib/misc.c"
-    "src/include/mhook/mhook-lib/mhook.cpp"
-)
-
 set(SOURCE_FILES
     ${__ImGui}
     ${__ImGuizmo}
-    ${__mhook}
     "src/dllmain.cpp"
 )
 
@@ -122,6 +113,7 @@ endif()
 ################################################################################
 # Link with other targets.
 target_link_libraries(bgpop PUBLIC
-    "hbqj"
+    hbqj
+    mhook
 )
 

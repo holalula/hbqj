@@ -84,12 +84,23 @@ include(CMake/GlobalSettingsInclude.cmake OPTIONAL)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ################################################################################
-# Include JSON lib
+# Third-party Dependencies
 ################################################################################
 include(FetchContent)
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_Declare(
+    json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
 FetchContent_MakeAvailable(json)
+
+FetchContent_declare(
+    mhook
+    GIT_REPOSITORY https://github.com/holalula/mhook.git
+    GIT_TAG 92d195dbdfd23c5ff6faf7412b0a64afe2966624
+)
+set(MHOOK_TESTS OFF CACHE INTERNAL "")
+FetchContent_MakeAvailable(mhook)
 
 ################################################################################
 # Sub-projects
