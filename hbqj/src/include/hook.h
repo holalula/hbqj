@@ -11,11 +11,11 @@
 namespace hbqj {
 	class __declspec(dllexport) Hook {
 	public:
-		std::expected<bool, Error> Inject(std::wstring_view dll_path);
+		std::expected<bool, Error> Inject(std::wstring_view dll_path, std::string_view process_name);
 
-		std::expected<bool, Error> Unload(std::wstring_view dll_name);
+		std::expected<bool, Error> Unload(std::wstring_view dll_name, std::string_view process_name);
 
-		std::expected<std::vector<std::wstring>, Error> GetLoadedModules();
+		std::expected<std::vector<std::wstring>, Error> GetLoadedModules(std::string_view process_name);
 
 		Process process_;
 		Logger log = Logger::GetLogger("Hook");

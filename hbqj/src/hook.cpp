@@ -1,9 +1,9 @@
 #include "hook.h"
 
 namespace hbqj {
-	std::expected<bool, Error> Hook::Inject(std::wstring_view dll_path) {
+	std::expected<bool, Error> Hook::Inject(std::wstring_view dll_path, std::string_view process_name) {
 		TRY(process,
-			process_.GetProcess("notepad.exe"));
+			process_.GetProcess(process_name));
 
 		size_t path_size = (dll_path.length() + 1) * sizeof(wchar_t);
 		auto path_start_addr = VirtualAllocEx(process, NULL, path_size, MEM_COMMIT, PAGE_READWRITE);
@@ -62,9 +62,9 @@ namespace hbqj {
 		return true;
 	}
 
-	std::expected<bool, Error> Hook::Unload(std::wstring_view dll_name) {
+	std::expected<bool, Error> Hook::Unload(std::wstring_view dll_name, std::string_view process_name) {
 		TRY(process,
-			process_.GetProcess("notepad.exe"));
+			process_.GetProcess(process_name));
 
 		const auto& snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetProcessId(process));
 		if (!snapshot) {
@@ -120,9 +120,9 @@ namespace hbqj {
 		return true;
 	}
 
-	std::expected<std::vector<std::wstring>, Error> Hook::GetLoadedModules() {
+	std::expected<std::vector<std::wstring>, Error> Hook::GetLoadedModules(std::string_view process_name) {
 		TRY(process,
-			process_.GetProcess("notepad.exe"));
+			process_.GetProcess(process_name));
 
 		HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetProcessId(process));
 		if (snapshot == INVALID_HANDLE_VALUE) {

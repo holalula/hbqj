@@ -115,5 +115,6 @@ endif()
 target_link_libraries(bgpop PUBLIC
     hbqj
     mhook
+    d3d11.lib
 )
 
