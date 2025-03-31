@@ -102,6 +102,13 @@ FetchContent_declare(
 set(MHOOK_TESTS OFF CACHE INTERNAL "")
 FetchContent_MakeAvailable(mhook)
 
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG a26fcf58cc2d0cfeee8b98ad8517af998f75c27e
+)
+FetchContent_Populate(imgui)
+
 ################################################################################
 # Sub-projects
 ################################################################################

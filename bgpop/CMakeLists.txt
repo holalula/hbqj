@@ -4,16 +4,21 @@ set(PROJECT_NAME bgpop)
 # Source files
 ################################################################################
 set(__ImGui
-    "src/ImGui/imgui_impl_dx11.cpp"
-    "src/ImGui/imgui_impl_win32.cpp"
+    "${imgui_SOURCE_DIR}/imgui.cpp"
+    "${imgui_SOURCE_DIR}/imgui_demo.cpp"
+    "${imgui_SOURCE_DIR}/imgui_draw.cpp"
+    "${imgui_SOURCE_DIR}/imgui_tables.cpp"
+    "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp"
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp"
 )
 
-set(__ImGuizmo
-    "src/ImGuizmo/imgui.cpp"
-    "src/ImGuizmo/imgui_draw.cpp"
-    "src/ImGuizmo/imgui_widgets.cpp"
-    "src/ImGuizmo/ImGuizmo.cpp"
-)
+# set(__ImGuizmo
+#     "src/ImGuizmo/imgui.cpp"
+#     "src/ImGuizmo/imgui_draw.cpp"
+#     "src/ImGuizmo/imgui_widgets.cpp"
+#     "src/ImGuizmo/ImGuizmo.cpp"
+# )
 
 set(SOURCE_FILES
     ${__ImGui}
@@ -48,7 +53,9 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_include_directories(${PROJECT_NAME} PUBLIC
         "$<$<CONFIG:Release>:"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/include;"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/include/ImGui;"
+            # "${CMAKE_CURRENT_SOURCE_DIR}/src/include/ImGui;"
+            "${imgui_SOURCE_DIR}"
+            "${imgui_SOURCE_DIR}/backends"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/include/ImGuizmo;"
             "${CMAKE_CURRENT_SOURCE_DIR}/../hbqj/include"
         ">"
