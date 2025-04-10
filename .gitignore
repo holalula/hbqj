@@ -3,6 +3,7 @@
 /Debug
 /x64
 /out
+/tmp
 
 *.vcxproj.user
 *.user
