@@ -123,6 +123,33 @@ uintptr_t GetPresentAddress() {
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+    if (ImGui::GetIO().WantCaptureMouse) {
+        switch (msg) {
+            case WM_LBUTTONDOWN: case WM_LBUTTONUP:
+            case WM_RBUTTONDOWN: case WM_RBUTTONUP:
+            case WM_MBUTTONDOWN: case WM_MBUTTONUP:
+            case WM_MOUSEWHEEL: case WM_MOUSEMOVE:
+            case WM_MOUSEHOVER: case WM_MOUSELEAVE:
+                ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+                // message has been processed
+                return 0;
+            default:;
+        }
+    }
+
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        switch (msg) {
+            case WM_KEYDOWN: case WM_KEYUP:
+            case WM_SYSKEYDOWN: case WM_SYSKEYUP:
+            case WM_CHAR: case WM_SYSCHAR:
+            case WM_IME_CHAR:
+                ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+                // message has been processed
+                return 0;
+            default:;
+        }
+    }
+
     if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
         return true;
     }
