@@ -1,11 +1,26 @@
-﻿#include <d3d11.h>
+﻿#include <atomic>
+#include <d3d11.h>
 #include <dxgi.h>
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
 #include <format>
 #include <windows.h>
-#include <mhook/mhook-lib/mhook.h>
+#include <mhook-lib/mhook.h>
+
+typedef HRESULT(__fastcall* IDXGISwapChainPresent)(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
+
+std::atomic<bool> g_cleanup_requested = false;
+std::atomic<bool> g_cleanup_completed = false;
+IDXGISwapChainPresent g_present = nullptr;
+bool g_initialized = false;
+ID3D11Device* g_d3d_device = nullptr;
+ID3D11DeviceContext* g_d3d_device_context = nullptr;
+ID3D11RenderTargetView* g_main_render_target_view = nullptr;
+WNDPROC g_original_wndproc = nullptr;
+HWND g_hwnd = nullptr;
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void log(const char* str) {
 	std::string msg = std::format("[bgpop] {}", str);
@@ -96,7 +111,7 @@ uintptr_t GetPresentAddress() {
 	// Extract the vtable from the swap chain
 	void** vtable = *reinterpret_cast<void***>(swap_chain);
 	// Present is the 8th entry
-	uintptr_t present_addr = reinterpret_cast<uintptr_t>(vtable[8]);
+	auto present_addr = reinterpret_cast<uintptr_t>(vtable[8]);
 
 	// Cleanup
 	swap_chain->Release();
@@ -107,25 +122,154 @@ uintptr_t GetPresentAddress() {
 	return present_addr;
 }
 
-uintptr_t g_present_addr = 0;
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+    if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
+        return true;
+    }
+
+    return CallWindowProc(g_original_wndproc, hwnd, msg, wparam, lparam);
+}
+
+void CreateRenderTarget(IDXGISwapChain* swap_chain) {
+    ID3D11Texture2D* back_buffer;
+    swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
+    if (back_buffer) {
+        g_d3d_device->CreateRenderTargetView(back_buffer, nullptr, &g_main_render_target_view);
+        back_buffer->Release();
+    }
+}
+
+void CleanupRenderTarget() {
+    if (g_main_render_target_view) {
+        g_main_render_target_view->Release();
+        g_main_render_target_view = nullptr;
+    }
+}
+
+void InitializeImGui(IDXGISwapChain* swap_chain) {
+    g_d3d_device->GetImmediateContext(&g_d3d_device_context);
+    CreateRenderTarget(swap_chain);
+
+    // initialize ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    ImGui::StyleColorsDark();
+
+    DXGI_SWAP_CHAIN_DESC sd;
+    swap_chain->GetDesc(&sd);
+    ImGui_ImplWin32_Init(sd.OutputWindow);
+
+    g_hwnd = sd.OutputWindow;
+
+    // hook WndProc
+    g_original_wndproc = reinterpret_cast<WNDPROC>(
+            SetWindowLongPtr(sd.OutputWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc)));
+
+    ImGui_ImplDX11_Init(g_d3d_device, g_d3d_device_context);
+
+    log("Initialize ImGui successfully.");
+}
+
+void CleanupImGui() {
+    if (g_original_wndproc && g_hwnd) {
+        log("Restoring original WndProc...");
+        SetWindowLongPtr(g_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(g_original_wndproc));
+        g_original_wndproc = nullptr;
+        g_hwnd = nullptr;
+        log("Restored original WndProc successfully.");
+    }
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+    CleanupRenderTarget();
+    if (g_d3d_device_context) {
+        g_d3d_device_context->Release();
+        g_d3d_device_context = nullptr;
+    }
+    if (g_d3d_device) {
+        g_d3d_device->Release();
+        g_d3d_device = nullptr;
+    }
+
+    log("CleanupImGui successfully.");
+}
+
+HRESULT __stdcall PresentHook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
+    log("Call PresentHook.");
+
+    if (g_cleanup_requested) {
+        log("start cleanup...");
+
+        if (g_present) {
+            Mhook_Unhook(reinterpret_cast<PVOID*>(&g_present));
+            log("Unhook Present().");
+        }
+
+        g_cleanup_completed = true;
+        log("complete cleanup, call original Present().");
+        return g_present(swap_chain, sync_interval, flags);
+    }
+
+    if (!g_initialized) {
+        log("Initializing...");
+        swap_chain->GetDevice(IID_PPV_ARGS(&g_d3d_device));
+        if (g_d3d_device) {
+            log("Get Device, initializing ImGui...");
+            InitializeImGui(swap_chain);
+
+            g_initialized = true;
+        }
+    }
+
+    bool is_demo_window_open = true;
+
+    if (g_initialized) {
+        log("Render ImGui...");
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow(&is_demo_window_open);
+
+        ImGui::Render();
+        g_d3d_device_context->OMSetRenderTargets(1, &g_main_render_target_view, nullptr);
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    }
+
+    log("Call original Present().");
+    return g_present(swap_chain, sync_interval, flags);
+}
 
 DWORD WINAPI InitD3D(LPVOID) {
-	// Initialize COM for this thread
+    log("Initialize COM for this thread");
 	HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 	if (FAILED(hr)) {
 		log("Failed to initialize COM");
-		return 0;
+        return 1;
 	}
 
+    log("GetPresentAddress...");
 	auto addr = GetPresentAddress();
 	if (addr) {
-		g_present_addr = addr;
+		g_present = reinterpret_cast<IDXGISwapChainPresent>(addr);
 		log(std::format("Present found at: {:#x}", (uint64_t)addr).c_str());
-	}
-	else {
+	} else {
 		log("Present not found.");
+        return 1;
 	}
-	return 0;
+
+    if (g_present != nullptr) {
+        log("Hook Present()...");
+        Mhook_SetHook(reinterpret_cast<PVOID*>(&g_present),
+                      reinterpret_cast<PVOID>(PresentHook));
+
+    }
+
+    return 0;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule,
@@ -138,10 +282,28 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	case DLL_PROCESS_ATTACH: {
 		log("DLL_PROCESS_ATTACH");
 		CreateThread(nullptr, 0, InitD3D, nullptr, 0, nullptr);
+
 		break;
 	}
 	case DLL_PROCESS_DETACH: {
 		log("DLL_PROCESS_DETACH");
+
+        g_cleanup_requested = true;
+
+        for (int i = 0; i < 50 && !g_cleanup_completed; i++) {
+            Sleep(100);
+            log("waiting for cleanup...");
+        }
+
+        if (!g_cleanup_completed) {
+            log("WARNING: Cleanup timeout!");
+        } else {
+            log("Cleanup completed successfully.");
+            if (g_initialized) {
+                CleanupImGui();
+            }
+        }
+
 		break;
 	}
 	case DLL_THREAD_ATTACH:
@@ -151,4 +313,3 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	}
 	return TRUE;
 }
-

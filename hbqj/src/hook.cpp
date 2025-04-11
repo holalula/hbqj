@@ -99,7 +99,7 @@ namespace hbqj {
 			return std::unexpected(WinAPIError{ .error = GetLastError() });
 		}
 
-		const auto& thread = CreateRemoteThread(process, NULL, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(free_lib), module, 0, NULL);
+		const auto& thread = CreateRemoteThread(process, nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(free_lib), module, 0, NULL);
 		if (!thread) {
 			return std::unexpected(WinAPIError{ .error = GetLastError() });
 		}

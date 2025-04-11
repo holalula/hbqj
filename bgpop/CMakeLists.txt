@@ -58,6 +58,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
             "${imgui_SOURCE_DIR}/backends"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/include/ImGuizmo;"
             "${CMAKE_CURRENT_SOURCE_DIR}/../hbqj/include"
+            "${mhook_SOURCE_DIR}"
         ">"
     )
 endif()
@@ -124,4 +125,3 @@ target_link_libraries(bgpop PUBLIC
     mhook
     d3d11.lib
 )
-
