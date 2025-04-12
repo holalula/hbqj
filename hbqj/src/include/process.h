@@ -27,6 +27,7 @@ namespace hbqj {
 
 	struct ProcessModule {
 		Address base, size;
+        WCHAR path[MAX_PATH];
 	};
 
 	class __declspec(dllexport) Process {

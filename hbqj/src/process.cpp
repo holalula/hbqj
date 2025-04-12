@@ -52,6 +52,7 @@ namespace hbqj {
 			if (module_name == utf16_to_utf8(mEntry.szModule)) {
 				CloseHandle(hmodule);
 				target_module_ = { .base = reinterpret_cast<Address>(mEntry.modBaseAddr), .size = mEntry.modBaseSize };
+                wcscpy_s(target_module_.path, MAX_PATH, mEntry.szExePath);
 				return target_module_;
 			}
 		} while (Module32NextW(hmodule, &mEntry));

@@ -6,10 +6,13 @@
 #include <string_view>
 #include <memory>
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 
 #include "log.h"
 #include "signature_scanner.h"
 #include "error.h"
+
+using json = nlohmann::json;
 
 namespace hbqj {
 	enum class SignatureType {
@@ -135,7 +138,27 @@ namespace hbqj {
 				SignatureScanner::MakePattern("\x41\x8B\xF0\x8B\xFA\x89\x54\x24\x00\x48\x8B\xD9\x48\x89\x4D\x00\xC6\x44\x24\x00\x00"),
 				"xxxxxxxx?xxxxxx?xxx?x"
 			}
-		} };
+		}};
+
+        struct SignatureCacheItem {
+            SignatureType type;
+            std::vector<Byte> pattern;
+            std::string mask;
+            Address offset;
+
+            NLOHMANN_DEFINE_TYPE_INTRUSIVE(SignatureCacheItem, type, pattern, mask, offset)
+        };
+
+        struct SignatureCache {
+            uint64_t write_time;
+            std::vector<SignatureCacheItem> signatures;
+
+            NLOHMANN_DEFINE_TYPE_INTRUSIVE(SignatureCache, write_time, signatures)
+        };
+
+        void SaveCache();
+        std::filesystem::path GetCachePath();
+        bool LoadAndVerifyCache(const std::filesystem::path& cache_path, uint64_t current_write_time);
 
 		std::unordered_map<SignatureType, Signature> signature_db_;
 		SignatureScanner scanner_;

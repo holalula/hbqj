@@ -26,10 +26,11 @@ namespace hbqj {
 			return std::span<const Byte>(reinterpret_cast<const Byte*>(str), N - 1);
 		}
 
+        static bool CompareMemory(std::span<const Byte> data, std::span<const Byte> pattern, std::string_view mask);
+
 		Logger log = Logger::GetLogger("Process");
 		std::shared_ptr<Process> process_;
 	private:
-        static bool CompareMemory(std::span<const Byte> data, std::span<const Byte> pattern, std::string_view mask);
 
         std::optional<size_t> CompareMemorySequential(
                 const std::vector<Byte>& buffer,
