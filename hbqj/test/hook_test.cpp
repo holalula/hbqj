@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "hook.h"
+#include "utils/string_utils.h"
 
 namespace hbqj {
     TEST(HookTest, InjectExample) {
@@ -23,7 +24,7 @@ namespace hbqj {
         const auto &ms = hook.GetLoadedModules("ffxiv_dx11.exe");
         if (ms) {
             for (const auto &m: ms.value()) {
-                hook.log.info("{}", std::filesystem::path(m).string());
+                hook.log.info("{}", utf16_to_utf8(std::filesystem::path(m).wstring()));
             }
         }
     }

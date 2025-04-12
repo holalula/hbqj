@@ -32,7 +32,7 @@ namespace hbqj {
 	class __declspec(dllexport) Logger {
 	public:
 		static Logger GetLogger(const std::string& name) {
-			return Logger(name);
+			return { name };
 		}
 
 		Logger& SetTarget(LogTarget target) { target_ = target; return *this; }
@@ -64,7 +64,7 @@ namespace hbqj {
 			logger_name_ = std::format("[{}]", name);
 
 			WCHAR path[MAX_PATH];
-			SHGetSpecialFolderPathW(NULL, path, CSIDL_APPDATA, FALSE);
+			SHGetSpecialFolderPathW(nullptr, path, CSIDL_APPDATA, FALSE);
 			std::wstring wpath(path);
 			log_file_path_ = std::filesystem::path(wpath) / "hbqj" / "hbqj.log";
 			std::filesystem::create_directories(log_file_path_.parent_path());
