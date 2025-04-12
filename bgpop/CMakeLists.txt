@@ -13,12 +13,9 @@ set(__ImGui
     "${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp"
 )
 
-# set(__ImGuizmo
-#     "src/ImGuizmo/imgui.cpp"
-#     "src/ImGuizmo/imgui_draw.cpp"
-#     "src/ImGuizmo/imgui_widgets.cpp"
-#     "src/ImGuizmo/ImGuizmo.cpp"
-# )
+set(__ImGuizmo
+    "${imguizmo_SOURCE_DIR}/ImGuizmo.cpp"
+)
 
 set(SOURCE_FILES
     ${__ImGui}
@@ -59,6 +56,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
             "${CMAKE_CURRENT_SOURCE_DIR}/src/include/ImGuizmo;"
             "${CMAKE_CURRENT_SOURCE_DIR}/../hbqj/include"
             "${mhook_SOURCE_DIR}"
+            "${imguizmo_SOURCE_DIR}"
         ">"
     )
 endif()

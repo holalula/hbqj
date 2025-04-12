@@ -109,6 +109,13 @@ FetchContent_Declare(
 )
 FetchContent_Populate(imgui)
 
+FetchContent_Declare(
+    imguizmo
+    GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
+    GIT_TAG 2310acda820d7383d4c4884b7945ada92cd16a47
+)
+FetchContent_Populate(imguizmo)
+
 ################################################################################
 # Sub-projects
 ################################################################################

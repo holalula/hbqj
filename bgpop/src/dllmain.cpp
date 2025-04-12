@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
+#include <ImGuizmo.h>
 #include <format>
 #include <windows.h>
 #include <mhook-lib/mhook.h>
@@ -173,6 +174,8 @@ void CleanupRenderTarget() {
     }
 }
 
+void InitializeMatrices();
+
 void InitializeImGui(IDXGISwapChain* swap_chain) {
     g_d3d_device->GetImmediateContext(&g_d3d_device_context);
     CreateRenderTarget(swap_chain);
@@ -197,6 +200,7 @@ void InitializeImGui(IDXGISwapChain* swap_chain) {
 
     ImGui_ImplDX11_Init(g_d3d_device, g_d3d_device_context);
 
+    InitializeMatrices();
     log("Initialize ImGui successfully.");
 }
 
@@ -225,8 +229,179 @@ void CleanupImGui() {
     log("CleanupImGui successfully.");
 }
 
+float g_objectMatrix[16] = {
+        1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.f, 0.f, 0.f, 1.f
+};
+
+float g_view[16] = {
+        1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.f, 0.f, 0.f, 1.f
+};
+
+float g_proj[16] = {
+        1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.f, 0.f, 0.f, 1.f
+};
+
+float objectMatrix[4][16] = {
+        { 1.f, 0.f, 0.f, 0.f,
+                0.f, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                0.f, 0.f, 0.f, 1.f },
+
+        { 1.f, 0.f, 0.f, 0.f,
+                0.f, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                2.f, 0.f, 0.f, 1.f },
+
+        { 1.f, 0.f, 0.f, 0.f,
+                0.f, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                2.f, 0.f, 2.f, 1.f },
+
+        { 1.f, 0.f, 0.f, 0.f,
+                0.f, 1.f, 0.f, 0.f,
+                0.f, 0.f, 1.f, 0.f,
+                0.f, 0.f, 2.f, 1.f }
+};
+
+void Frustum(float left, float right, float bottom, float top, float znear, float zfar, float* m16)
+{
+    float temp, temp2, temp3, temp4;
+    temp = 2.0f * znear;
+    temp2 = right - left;
+    temp3 = top - bottom;
+    temp4 = zfar - znear;
+    m16[0] = temp / temp2;
+    m16[1] = 0.0;
+    m16[2] = 0.0;
+    m16[3] = 0.0;
+    m16[4] = 0.0;
+    m16[5] = temp / temp3;
+    m16[6] = 0.0;
+    m16[7] = 0.0;
+    m16[8] = (right + left) / temp2;
+    m16[9] = (top + bottom) / temp3;
+    m16[10] = (-zfar - znear) / temp4;
+    m16[11] = -1.0f;
+    m16[12] = 0.0;
+    m16[13] = 0.0;
+    m16[14] = (-temp * zfar) / temp4;
+    m16[15] = 0.0;
+}
+
+void Perspective(float fovyInDegrees, float aspectRatio, float znear, float zfar, float* m16)
+{
+    float ymax, xmax;
+    ymax = znear * tanf(fovyInDegrees * 3.141592f / 180.0f);
+    xmax = ymax * aspectRatio;
+    Frustum(-xmax, xmax, -ymax, ymax, znear, zfar, m16);
+}
+
+void Cross(const float* a, const float* b, float* r)
+{
+    r[0] = a[1] * b[2] - a[2] * b[1];
+    r[1] = a[2] * b[0] - a[0] * b[2];
+    r[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+float Dot(const float* a, const float* b)
+{
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+void Normalize(const float* a, float* r)
+{
+    float il = 1.f / (sqrtf(Dot(a, a)) + FLT_EPSILON);
+    r[0] = a[0] * il;
+    r[1] = a[1] * il;
+    r[2] = a[2] * il;
+}
+
+void LookAt(const float* eye, const float* at, const float* up, float* m16)
+{
+    float X[3], Y[3], Z[3], tmp[3];
+
+    tmp[0] = eye[0] - at[0];
+    tmp[1] = eye[1] - at[1];
+    tmp[2] = eye[2] - at[2];
+    Normalize(tmp, Z);
+    Normalize(up, Y);
+
+    Cross(Y, Z, tmp);
+    Normalize(tmp, X);
+
+    Cross(Z, X, tmp);
+    Normalize(tmp, Y);
+
+    m16[0] = X[0];
+    m16[1] = Y[0];
+    m16[2] = Z[0];
+    m16[3] = 0.0f;
+    m16[4] = X[1];
+    m16[5] = Y[1];
+    m16[6] = Z[1];
+    m16[7] = 0.0f;
+    m16[8] = X[2];
+    m16[9] = Y[2];
+    m16[10] = Z[2];
+    m16[11] = 0.0f;
+    m16[12] = -Dot(X, eye);
+    m16[13] = -Dot(Y, eye);
+    m16[14] = -Dot(Z, eye);
+    m16[15] = 1.0f;
+}
+
+void InitializeMatrices() {
+    float eye[] = { 5.0f, 5.0f, 5.0f };  // camera position (5,5,5)
+    float at[] = { 0.0f, 0.0f, 0.0f };   // look at origin
+    float up[] = { 0.0f, 1.0f, 0.0f };   // up direction
+    LookAt(eye, at, up, g_view);
+
+    ImGuiIO& io = ImGui::GetIO();
+    Perspective(45.0f, io.DisplaySize.x / io.DisplaySize.y, 1.0f, 100.0f, g_proj);
+}
+
+void DrawImGuizmo() {
+    ImGuizmo::Enable(true);
+
+    ImGuizmo::BeginFrame();
+
+    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::Begin("Gizmo", nullptr,
+                 ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration |
+                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                 ImGuiWindowFlags_NoInputs);
+
+    ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+
+    ImGuizmo::SetOrthographic(false);
+
+    ImGuizmo::SetDrawlist();
+
+    ImGuizmo::Manipulate(
+            g_view,
+            g_proj,
+            ImGuizmo::TRANSLATE,
+            ImGuizmo::LOCAL,
+            g_objectMatrix
+    );
+
+    // ImGuizmo::DrawCubes(g_view, g_proj, &objectMatrix[0][0], 1);
+
+    ImGui::End();
+}
+
 HRESULT __stdcall PresentHook(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags) {
-    log("Call PresentHook.");
+    // log("Call PresentHook.");
 
     if (g_cleanup_requested) {
         log("start cleanup...");
@@ -255,19 +430,21 @@ HRESULT __stdcall PresentHook(IDXGISwapChain* swap_chain, UINT sync_interval, UI
     bool is_demo_window_open = true;
 
     if (g_initialized) {
-        log("Render ImGui...");
+        // log("Render ImGui...");
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow(&is_demo_window_open);
+        // ImGui::ShowDemoWindow(&is_demo_window_open);
+
+        DrawImGuizmo();
 
         ImGui::Render();
         g_d3d_device_context->OMSetRenderTargets(1, &g_main_render_target_view, nullptr);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
     }
 
-    log("Call original Present().");
+    // log("Call original Present().");
     return g_present(swap_chain, sync_interval, flags);
 }
 
