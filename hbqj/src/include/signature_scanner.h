@@ -29,6 +29,18 @@ namespace hbqj {
 		Logger log = Logger::GetLogger("Process");
 		std::shared_ptr<Process> process_;
 	private:
-		bool CompareMemory(std::span<const Byte> data, std::span<const Byte> pattern, std::string_view mask);
+        static bool CompareMemory(std::span<const Byte> data, std::span<const Byte> pattern, std::string_view mask);
+
+        std::optional<size_t> CompareMemorySequential(
+                const std::vector<Byte>& buffer,
+                size_t buffer_size,
+                std::span<const Byte> signature,
+                std::string_view mask);
+
+        std::optional<size_t> CompareMemoryParallel(
+                const std::vector<Byte>& buffer,
+                size_t buffer_size,
+                std::span<const Byte> signature,
+                std::string_view mask);
 	};
 }

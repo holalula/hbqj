@@ -20,7 +20,7 @@ namespace hbqj {
             auto milliseconds = duration.count() % 1000;
 
             if (seconds > 0) {
-                log.info("{} took {}s {:03d}ms.", name_, seconds, milliseconds);
+                log.info("{} took {}.{:03d}s.", name_, seconds, milliseconds);
             } else {
                 log.info("{} took {:03d}ms.", name_, milliseconds);
             }
