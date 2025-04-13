@@ -17,6 +17,15 @@ namespace hbqj {
 			return std::unexpected(write_result.error());
 		}
 
+        // validate wrote dll path
+        std::vector<wchar_t> buffer(dll_path.length() + 1);
+        SIZE_T bytes_read;
+        if (!ReadProcessMemory(process, path_start_addr, buffer.data(), path_size, &bytes_read) ||
+            bytes_read != path_size) {
+            VirtualFreeEx(process, path_start_addr, 0, MEM_RELEASE);
+            return std::unexpected(WinAPIError{ .error = GetLastError() });
+        }
+
 		const auto& kernel32 = GetModuleHandleW(L"kernel32.dll");
 		if (!kernel32) {
 			VirtualFreeEx(process, path_start_addr, 0, MEM_RELEASE);
