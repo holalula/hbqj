@@ -7,6 +7,8 @@
 #include <iostream>
 #include <ShlObj_core.h>
 
+#include "utils/string_utils.h"
+
 namespace hbqj {
 	enum class LogLevel {
 		INFO,
@@ -63,10 +65,19 @@ namespace hbqj {
 		Logger(const std::string& name) {
 			logger_name_ = std::format("[{}]", name);
 
-			WCHAR path[MAX_PATH];
+            static std::string process_name = []() {
+                wchar_t path[MAX_PATH];
+                // null represents the path of the executable file of the current process
+                GetModuleFileNameW(nullptr, path, MAX_PATH);
+                return std::filesystem::path(utf16_to_utf8(path)).filename().stem().string();
+            }();
+
+			wchar_t path[MAX_PATH];
 			SHGetSpecialFolderPathW(nullptr, path, CSIDL_APPDATA, FALSE);
-			std::wstring wpath(path);
-			log_file_path_ = std::filesystem::path(wpath) / "hbqj" / "hbqj.log";
+			std::wstring w_path(path);
+
+			log_file_path_ = std::filesystem::path(w_path) / "hbqj" / "log" /
+                    std::format("{}.hbqj.log", process_name);
 			std::filesystem::create_directories(log_file_path_.parent_path());
 		}
 
