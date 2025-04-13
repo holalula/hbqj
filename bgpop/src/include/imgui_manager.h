@@ -1,0 +1,262 @@
+#pragma once
+
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+#include <ImGuizmo.h>
+
+#include "d3d_manager.h"
+#include "global_state.h"
+#include "math_utils.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+namespace hbqj {
+    LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+        if (ImGui::GetIO().WantCaptureMouse) {
+            switch (msg) {
+                case WM_LBUTTONDOWN:
+                case WM_LBUTTONUP:
+                case WM_RBUTTONDOWN:
+                case WM_RBUTTONUP:
+                case WM_MBUTTONDOWN:
+                case WM_MBUTTONUP:
+                case WM_MOUSEWHEEL:
+                case WM_MOUSEMOVE:
+                case WM_MOUSEHOVER:
+                case WM_MOUSELEAVE:
+                    ::ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+                    // message has been processed
+                    return 0;
+                default:;
+            }
+        }
+
+        if (ImGui::GetIO().WantCaptureKeyboard) {
+            switch (msg) {
+                case WM_KEYDOWN:
+                case WM_KEYUP:
+                case WM_SYSKEYDOWN:
+                case WM_SYSKEYUP:
+                case WM_CHAR:
+                case WM_SYSCHAR:
+                case WM_IME_CHAR:
+                    ::ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+                    // message has been processed
+                    return 0;
+                default:;
+            }
+        }
+
+        if (::ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
+            return true;
+        }
+
+        return CallWindowProc(state::g_original_wndproc, hwnd, msg, wparam, lparam);
+    }
+
+    void CreateRenderTarget(IDXGISwapChain *swap_chain) {
+        ID3D11Texture2D *back_buffer;
+        swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
+        if (back_buffer) {
+            state::g_d3d_device->CreateRenderTargetView(back_buffer, nullptr, &state::g_main_render_target_view);
+            back_buffer->Release();
+        }
+    }
+
+    void CleanupRenderTarget() {
+        if (state::g_main_render_target_view) {
+            state::g_main_render_target_view->Release();
+            state::g_main_render_target_view = nullptr;
+        }
+    }
+
+    void InitializeMatrices();
+
+    void InitializeImGui(IDXGISwapChain *swap_chain) {
+        state::g_d3d_device->GetImmediateContext(&state::g_d3d_device_context);
+        CreateRenderTarget(swap_chain);
+
+        // initialize ImGui
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO &io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+        ImGui::StyleColorsDark();
+
+        DXGI_SWAP_CHAIN_DESC sd;
+        swap_chain->GetDesc(&sd);
+        ImGui_ImplWin32_Init(sd.OutputWindow);
+
+        state::g_hwnd = sd.OutputWindow;
+
+        // hook WndProc
+        state::g_original_wndproc = reinterpret_cast<WNDPROC>(
+                SetWindowLongPtr(sd.OutputWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc)));
+
+        ImGui_ImplDX11_Init(state::g_d3d_device, state::g_d3d_device_context);
+
+        InitializeMatrices();
+        log("Initialize ImGui successfully.");
+    }
+
+    void CleanupImGui() {
+        if (state::g_original_wndproc && state::g_hwnd) {
+            log("Restoring original WndProc...");
+            SetWindowLongPtr(state::g_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(state::g_original_wndproc));
+            state::g_original_wndproc = nullptr;
+            state::g_hwnd = nullptr;
+            log("Restored original WndProc successfully.");
+        }
+
+        ImGui_ImplDX11_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+        CleanupRenderTarget();
+        if (state::g_d3d_device_context) {
+            state::g_d3d_device_context->Release();
+            state::g_d3d_device_context = nullptr;
+        }
+        if (state::g_d3d_device) {
+            state::g_d3d_device->Release();
+            state::g_d3d_device = nullptr;
+        }
+
+        log("CleanupImGui successfully.");
+    }
+
+    float g_objectMatrix[16] = {
+            1.f, 0.f, 0.f, 0.f,
+            0.f, 1.f, 0.f, 0.f,
+            0.f, 0.f, 1.f, 0.f,
+            0.f, 0.f, 0.f, 1.f
+    };
+
+    float g_view[16] = {
+            1.f, 0.f, 0.f, 0.f,
+            0.f, 1.f, 0.f, 0.f,
+            0.f, 0.f, 1.f, 0.f,
+            0.f, 0.f, 0.f, 1.f
+    };
+
+    float g_proj[16] = {
+            1.f, 0.f, 0.f, 0.f,
+            0.f, 1.f, 0.f, 0.f,
+            0.f, 0.f, 1.f, 0.f,
+            0.f, 0.f, 0.f, 1.f
+    };
+
+    float objectMatrix[4][16] = {
+            {1.f, 0.f, 0.f, 0.f,
+                    0.f, 1.f, 0.f, 0.f,
+                    0.f, 0.f, 1.f, 0.f,
+                    0.f, 0.f, 0.f, 1.f},
+
+            {1.f, 0.f, 0.f, 0.f,
+                    0.f, 1.f, 0.f, 0.f,
+                    0.f, 0.f, 1.f, 0.f,
+                    2.f, 0.f, 0.f, 1.f},
+
+            {1.f, 0.f, 0.f, 0.f,
+                    0.f, 1.f, 0.f, 0.f,
+                    0.f, 0.f, 1.f, 0.f,
+                    2.f, 0.f, 2.f, 1.f},
+
+            {1.f, 0.f, 0.f, 0.f,
+                    0.f, 1.f, 0.f, 0.f,
+                    0.f, 0.f, 1.f, 0.f,
+                    0.f, 0.f, 2.f, 1.f}
+    };
+
+    void InitializeMatrices() {
+        float eye[] = {5.0f, 5.0f, 5.0f};  // camera position (5,5,5)
+        float at[] = {0.0f, 0.0f, 0.0f};   // look at origin
+        float up[] = {0.0f, 1.0f, 0.0f};   // up direction
+        LookAt(eye, at, up, g_view);
+
+        ImGuiIO &io = ImGui::GetIO();
+        Perspective(45.0f, io.DisplaySize.x / io.DisplaySize.y, 1.0f, 100.0f, g_proj);
+    }
+
+    void DrawImGuizmo() {
+        ImGuizmo::Enable(true);
+
+        ImGuizmo::BeginFrame();
+
+        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::Begin("Gizmo", nullptr,
+                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration |
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground |
+                     ImGuiWindowFlags_NoBringToFrontOnFocus |
+                     ImGuiWindowFlags_NoInputs);
+
+        ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(),
+                          ImGui::GetWindowHeight());
+
+        ImGuizmo::SetOrthographic(false);
+
+        ImGuizmo::SetDrawlist();
+
+        ImGuizmo::Manipulate(
+                g_view,
+                g_proj,
+                ImGuizmo::TRANSLATE,
+                ImGuizmo::LOCAL,
+                g_objectMatrix
+        );
+
+        // ImGuizmo::DrawCubes(g_view, g_proj, &objectMatrix[0][0], 1);
+
+        ImGui::End();
+    }
+
+    HRESULT __stdcall PresentHook(IDXGISwapChain *swap_chain, UINT sync_interval, UINT flags) {
+        // log("Call PresentHook.");
+
+        if (state::g_cleanup_requested) {
+            log("start cleanup...");
+
+            if (state::g_present) {
+                Mhook_Unhook(reinterpret_cast<PVOID *>(&state::g_present));
+                log("Unhook Present().");
+            }
+
+            state::g_cleanup_completed = true;
+            log("complete cleanup, call original Present().");
+            return state::g_present(swap_chain, sync_interval, flags);
+        }
+
+        if (!state::g_initialized) {
+            log("Initializing...");
+            swap_chain->GetDevice(IID_PPV_ARGS(&state::g_d3d_device));
+            if (state::g_d3d_device) {
+                log("Get Device, initializing ImGui...");
+                InitializeImGui(swap_chain);
+
+                state::g_initialized = true;
+            }
+        }
+
+        bool is_demo_window_open = true;
+
+        if (state::g_initialized) {
+            // log("Render ImGui...");
+            ImGui_ImplDX11_NewFrame();
+            ImGui_ImplWin32_NewFrame();
+            ImGui::NewFrame();
+
+            // ImGui::ShowDemoWindow(&is_demo_window_open);
+
+            DrawImGuizmo();
+
+            ImGui::Render();
+            state::g_d3d_device_context->OMSetRenderTargets(1, &state::g_main_render_target_view, nullptr);
+            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+        }
+
+        // log("Call original Present().");
+        return state::g_present(swap_chain, sync_interval, flags);
+    }
+}

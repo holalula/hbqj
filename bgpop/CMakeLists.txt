@@ -17,9 +17,16 @@ set(__ImGuizmo
     "${imguizmo_SOURCE_DIR}/ImGuizmo.cpp"
 )
 
+set(__HBQJ
+    "${hbqj_SOURCE_DIR}/hbqj/src/process.cpp"
+    "${hbqj_SOURCE_DIR}/hbqj/src/signature_manager.cpp"
+    "${hbqj_SOURCE_DIR}/hbqj/src/signature_scanner.cpp"
+)
+
 set(SOURCE_FILES
     ${__ImGui}
     ${__ImGuizmo}
+    ${__HBQJ}
     "src/dllmain.cpp"
 )
 
@@ -50,11 +57,9 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_include_directories(${PROJECT_NAME} PUBLIC
         "$<$<CONFIG:Release>:"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/include;"
-            # "${CMAKE_CURRENT_SOURCE_DIR}/src/include/ImGui;"
+            "${hbqj_SOURCE_DIR}/hbqj/src/include"
             "${imgui_SOURCE_DIR}"
             "${imgui_SOURCE_DIR}/backends"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/include/ImGuizmo;"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../hbqj/include"
             "${mhook_SOURCE_DIR}"
             "${imguizmo_SOURCE_DIR}"
         ">"
@@ -119,7 +124,7 @@ endif()
 ################################################################################
 # Link with other targets.
 target_link_libraries(bgpop PUBLIC
-    hbqj
+    nlohmann_json::nlohmann_json
     mhook
     d3d11.lib
 )
