@@ -122,4 +122,5 @@ FetchContent_Populate(imguizmo)
 add_subdirectory(bgpop)
 add_subdirectory(hbqj)
 add_subdirectory(test)
+add_subdirectory(client)
 
