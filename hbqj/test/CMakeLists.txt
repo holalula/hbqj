@@ -21,7 +21,7 @@ FetchContent_MakeAvailable(googletest)
      hook_test.cpp
  )
 
-# add_dependencies(hbqj_tests bgpop)
+add_dependencies(hbqj_tests bgpop)
 
 target_link_libraries(hbqj_tests
     PRIVATE

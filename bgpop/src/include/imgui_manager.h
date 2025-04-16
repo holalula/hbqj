@@ -12,6 +12,8 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace hbqj {
+    static bool g_resized = false;
+
     LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
         if (ImGui::GetIO().WantCaptureMouse) {
             switch (msg) {
@@ -52,6 +54,18 @@ namespace hbqj {
             return true;
         }
 
+        switch (msg) {
+            case WM_SIZE:
+                if (wparam != SIZE_MINIMIZED) {
+                    g_resized = true;
+                    // The game process may call ResizeBuffers to handle window resize, we need to clean the created
+                    // RenderTargetView (which is bound to device context by OMSetRenderTargets) before the
+                    // ResizeBuffers is called, otherwise the call would fail.
+                    // https://learn.microsoft.com/en-us/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-resizebuffers
+                    // Note: not mutate render resources in message handler thread.
+                }
+        }
+
         return CallWindowProc(state::g_original_wndproc, hwnd, msg, wparam, lparam);
     }
 
@@ -59,6 +73,11 @@ namespace hbqj {
         ID3D11Texture2D *back_buffer;
         swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
         if (back_buffer) {
+            D3D11_TEXTURE2D_DESC desc;
+            back_buffer->GetDesc(&desc);
+
+            log(std::format("Back Buffer Format: {}, Samples: {}", (int) desc.Format, desc.SampleDesc.Count).c_str());
+
             state::g_d3d_device->CreateRenderTargetView(back_buffer, nullptr, &state::g_main_render_target_view);
             back_buffer->Release();
         }
@@ -180,10 +199,6 @@ namespace hbqj {
     }
 
     void DrawImGuizmo() {
-        ImGuizmo::Enable(true);
-
-        ImGuizmo::BeginFrame();
-
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::Begin("Gizmo", nullptr,
@@ -191,6 +206,10 @@ namespace hbqj {
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground |
                      ImGuiWindowFlags_NoBringToFrontOnFocus |
                      ImGuiWindowFlags_NoInputs);
+
+        ImGuizmo::Enable(true);
+
+        ImGuizmo::BeginFrame();
 
         ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(),
                           ImGui::GetWindowHeight());
@@ -243,6 +262,18 @@ namespace hbqj {
 
         if (state::g_initialized) {
             // log("Render ImGui...");
+
+            if (g_resized) {
+                log("Handle window resize, cleanup ImGui resources and re-initialize in next Present call");
+                // The swap_chain in this call is not resized yet, need to initialize ImGui with the resized
+                // swap_chain in next call.
+                // TODO: can we just clean RTV instead of all resources?
+                CleanupImGui();
+                state::g_initialized = false;
+                g_resized = false;
+                return state::g_present(swap_chain, sync_interval, flags);
+            }
+
             ImGui_ImplDX11_NewFrame();
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
