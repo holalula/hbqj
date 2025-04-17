@@ -1,13 +1,11 @@
-#include <format>
 #include <iostream>
-#include "imgui.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_dx11.h"
 #include <d3d11.h>
-#include <tchar.h>
 
 #include "fonts/roboto.h"
 #include "imgui_internal.h"
+#include "ui/debug_window.h"
+#include "ui/place_item_tab.h"
+#include "ui/save_and_load_tab.h"
 
 // Data
 static ID3D11Device *g_pd3dDevice = nullptr;
@@ -16,14 +14,6 @@ static IDXGISwapChain *g_pSwapChain = nullptr;
 static bool g_SwapChainOccluded = false;
 static UINT g_ResizeWidth = 0, g_ResizeHeight = 0;
 static ID3D11RenderTargetView *g_mainRenderTargetView = nullptr;
-
-// State
-static bool g_pending_scale = false;
-static float g_scale = 1.f;
-static constexpr float SCALE_MIN = 0.5f;
-static constexpr float SCALE_MAX = 3.0f;
-static constexpr float FONT_PIXEL_SIZE = 20.0f;
-
 
 // Forward declarations of helper functions
 bool CreateDeviceD3D(HWND hWnd);
@@ -35,11 +25,6 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-template<typename ...Args>
-void log(std::string_view fmt, Args &&... args) {
-    std::cout << std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...)) << std::endl;
-}
 
 void UpdateUIScale(float new_scale) {
     new_scale = ImClamp(new_scale, SCALE_MIN, SCALE_MAX);
@@ -69,8 +54,9 @@ int main(int, char **) {
                       nullptr, nullptr, L"ImGui Example", nullptr};
     ::RegisterClassExW(&wc);
     HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX11 Example",
-                                WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, 100, 100, 1280, 800, nullptr, nullptr,
-                                wc.hInstance, nullptr);
+                                WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX,
+                                WINDOW_X, WINDOW_Y, WINDOW_WIDTH, WINDOW_HEIGHT,
+                                nullptr, nullptr, wc.hInstance, nullptr);
 //    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX11 Example",
 //                                WS_POPUPWINDOW, 100, 100, 1280, 800, nullptr, nullptr, wc.hInstance, nullptr);
 
@@ -117,11 +103,11 @@ int main(int, char **) {
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
-    float system_dpi_scale = ImGui_ImplWin32_GetDpiScaleForHwnd(hwnd);
-    float custom_scale = 1.2f;
-    float font_scale = system_dpi_scale * custom_scale;
+
+    // float system_dpi_scale = ImGui_ImplWin32_GetDpiScaleForHwnd(hwnd);
     float pixel_size = 20;
-    io.Fonts->AddFontFromMemoryCompressedTTF(roboto_compressed_data, roboto_compressed_size, pixel_size);
+    io.Fonts->AddFontFromMemoryCompressedTTF(roboto_compressed_data,
+                                             roboto_compressed_size, pixel_size);
 
     // Our state
     bool show_demo_window = true;
@@ -183,33 +169,25 @@ int main(int, char **) {
                          ImGuiWindowFlags_NoBringToFrontOnFocus
             );
 
-            ImGui::Text("Hello World!");
-
-            static float value = 0.0f;
-            ImGui::SliderFloat("Bar", &value, 0.0f, 1.0f);
-
-            if (ImGui::Button("Button")) {
+            if (ImGui::BeginTabBar("MainTabBar", ImGuiTabBarFlags_None)) {
+                if (ImGui::BeginTabItem("PlaceHousingItem")) {
+                    ImGui::Text("Place Housing Item.");
+                    PlaceHousingItemTab();
+                    ImGui::EndTabItem();
+                }
+                if (ImGui::BeginTabItem("SaveAndLoad")) {
+                    ImGui::Text("Save And Load Furniture Positions");
+                    SaveAndLoadTab();
+                    ImGui::EndTabItem();
+                }
             }
+            ImGui::EndTabBar();
 
             ImGui::End();
             ImGui::PopStyleVar(2);
         }
 
-        {
-            ImGui::SetNextWindowSize({400, 400});
-            ImGui::Begin("Debug");
-
-            if (ImGui::SliderFloat("Scale Bar", &g_scale, SCALE_MIN, SCALE_MAX)) {
-                log("Scale in Slider bar: {}", g_scale);
-                g_pending_scale = true;
-            }
-
-            if (ImGui::InputFloat("Scale", &g_scale)) {
-                g_pending_scale = true;
-            }
-
-            ImGui::End();
-        }
+        DebugWindow();
 
         // Rendering
         ImGui::Render();
