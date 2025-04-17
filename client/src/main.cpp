@@ -26,24 +26,7 @@ void CleanupRenderTarget();
 
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-void UpdateUIScale(float new_scale) {
-    new_scale = ImClamp(new_scale, SCALE_MIN, SCALE_MAX);
 
-    ImGuiIO &io = ImGui::GetIO();
-
-    // reload font
-    float pixel_size = FONT_PIXEL_SIZE * new_scale;
-    io.Fonts->AddFontFromMemoryCompressedTTF(roboto_compressed_data,
-                                             roboto_compressed_size, pixel_size);
-    io.Fonts->Build();
-
-    ImGui_ImplDX11_InvalidateDeviceObjects();
-
-    // default style first
-    ImGui::GetStyle() = ImGuiStyle{};
-
-    ImGui::GetStyle().ScaleAllSizes(new_scale);
-}
 
 // Main code
 int main(int, char **) {
@@ -105,9 +88,10 @@ int main(int, char **) {
     //IM_ASSERT(font != nullptr);
 
     // float system_dpi_scale = ImGui_ImplWin32_GetDpiScaleForHwnd(hwnd);
-    float pixel_size = 20;
-    io.Fonts->AddFontFromMemoryCompressedTTF(roboto_compressed_data,
-                                             roboto_compressed_size, pixel_size);
+    // float pixel_size = 20;
+    // io.Fonts->AddFontFromMemoryCompressedTTF(roboto_compressed_data,
+    //                                          roboto_compressed_size, pixel_size);
+    LoadFont(io, FONT_PIXEL_SIZE);
 
     // Our state
     bool show_demo_window = true;
@@ -118,7 +102,7 @@ int main(int, char **) {
     bool done = false;
     while (!done) {
         if (g_pending_scale) {
-            UpdateUIScale(g_scale);
+            ScaleUI(g_scale);
             g_pending_scale = false;
         }
         // Poll and handle messages (inputs, window resize, etc.)
