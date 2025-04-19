@@ -45,9 +45,15 @@ namespace hbqj {
         // log("Done.");
 
         g_get_view_matrix_func = reinterpret_cast<GetViewMatrixFunc>
-                (process->GetBaseAddr() + get_view_matrix_func_offset);
+        (process->GetBaseAddr() + get_view_matrix_func_offset);
         Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func),
                       reinterpret_cast<PVOID>(GetViewMatrixHook));
+
+
+        g_get_active_camera_func = reinterpret_cast<GetActiveCameraFunc>
+        (process->GetBaseAddr() + g_get_active_camera_offset);
+        Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_active_camera_func),
+                      reinterpret_cast<PVOID>(GetActiveCameraHook));
 
         memory.Initialize(process);
 

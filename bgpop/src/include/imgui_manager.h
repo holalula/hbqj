@@ -189,6 +189,22 @@ namespace hbqj {
                     0.f, 0.f, 2.f, 1.f}
     };
 
+    float matrixTranslation[3] = {1.0f, 1.0f, 1.0f},
+            matrixRotation[3] = {1.0f, 1.0f, 1.0f},
+            matrix_scale[3] = {1.0f, 1.0f, 1.0f};
+    float view_projection_matrix[16] = {1.0f, 0.0f, 0.0f, 0.0f,
+                                        0.0f, 1.0f, 0.0f, 0.0f,
+                                        0.0f, 0.0f, 1.0f, 0.0f,
+                                        0.0f, 0.0f, 0.0f, 1.0f},
+            identity_matrix[16] = {1.0f, 0.0f, 0.0f, 0.0f,
+                                   0.0f, 1.0f, 0.0f, 0.0f,
+                                   0.0f, 0.0f, 1.0f, 0.0f,
+                                   0.0f, 0.0f, 0.0f, 1.0f},
+            item_matrix[16] = {1.0f, 0.0f, 0.0f, 0.0f,
+                               0.0f, 1.0f, 0.0f, 0.0f,
+                               0.0f, 0.0f, 1.0f, 0.0f,
+                               0.0f, 0.0f, 0.0f, 1.0f};
+
     void InitializeMatrices() {
         float eye[] = {5.0f, 5.0f, 5.0f};  // camera position (5,5,5)
         float at[] = {0.0f, 0.0f, 0.0f};   // look at origin
@@ -199,9 +215,14 @@ namespace hbqj {
         Perspective(45.0f, io.DisplaySize.x / io.DisplaySize.y, 1.0f, 100.0f, g_proj);
     }
 
+    float item_position[3] = {.0f, .0f, .0f};
+    float item_rotation[3] = {.0f, .0f, .0f};
+    Matrix4x4 projection_m;
+    Matrix4x4 view_m;
+
     void DrawImGuizmo() {
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
         ImGui::Begin("Gizmo", nullptr,
                      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration |
                      ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground |
@@ -212,22 +233,82 @@ namespace hbqj {
 
         ImGuizmo::BeginFrame();
 
-        ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(),
+        ImGuizmo::SetRect(ImGui::GetWindowPos().x,
+                          ImGui::GetWindowPos().y,
+                          ImGui::GetWindowWidth(),
                           ImGui::GetWindowHeight());
 
         ImGuizmo::SetOrthographic(false);
 
         ImGuizmo::SetDrawlist();
 
-        ImGuizmo::Manipulate(
-                g_view,
-                g_proj,
-                ImGuizmo::TRANSLATE,
-                ImGuizmo::LOCAL,
-                g_objectMatrix
-        );
+//        ImGuizmo::Manipulate(
+//                g_view,
+//                g_proj,
+//                ImGuizmo::TRANSLATE,
+//                ImGuizmo::LOCAL,
+//                g_objectMatrix
+//        );
+
+//        if (active_camera) {
+//            log(std::format("Active Camera addr: {:x}", reinterpret_cast<int64_t>(active_camera)).c_str());
+//            if (active_camera && active_camera->scene_camera.render_camera) {
+//                log(std::format("Render Camera addr: {:x}", reinterpret_cast<int64_t>(active_camera->scene_camera.render_camera)).c_str());
+//                log(std::format("Far: {}", active_camera->scene_camera.render_camera->far_plane).c_str());
+//                log(std::format("Near: {}", active_camera->scene_camera.render_camera->near_plane).c_str());
+//                log(std::format("Project Matrix addr: {:x}", reinterpret_cast<int64_t>(&active_camera->scene_camera.render_camera->projection_matrix)).c_str());
+//            }
+//        }
 
         // ImGuizmo::DrawCubes(g_view, g_proj, &objectMatrix[0][0], 1);
+
+        // refer to:
+        // https://github.com/LeonBlade/BDTHPlugin/blob/main/BDTHPlugin/Interface/Gizmo.cs
+        for (int i = 0; i < 16; i++) {
+            projection_m.matrix[i] = active_camera->scene_camera.render_camera->projection_matrix.matrix[i];
+        }
+        for (int i = 0; i < 16; i++) {
+            view_m.matrix[i] = active_camera->scene_camera.viewMatrix.matrix[i];
+        }
+
+        float far_plane = active_camera->scene_camera.render_camera->far_plane;
+        float near_plane = active_camera->scene_camera.render_camera->near_plane;
+        float clip = far_plane / (far_plane - near_plane);
+        projection_m.m43 = -(clip * near_plane);
+        projection_m.m33 = -((far_plane + near_plane) / (far_plane - near_plane));
+
+        view_m.m44 = 1.f;
+
+        if (ImGuizmo::Manipulate(
+                // view_projection_matrix,
+                view_m.matrix,
+                // identity_matrix,
+                projection_m.matrix,
+                ImGuizmo::TRANSLATE,
+                ImGuizmo::LOCAL,
+                item_matrix,
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr)) {
+            ImGuizmo::DecomposeMatrixToComponents(
+                    item_matrix,
+                    item_position,
+                    item_rotation,
+                    matrix_scale
+            );
+
+            log(std::format("Update position to: {:.2f}, {:.2f}, {:.2f}",
+                            item_position[0],
+                            item_position[1],
+                            item_position[2]
+            ).c_str());
+            memory.SetActivePosition(
+                    item_position[0],
+                    item_position[1],
+                    item_position[2]
+            );
+        }
 
         ImGui::End();
     }
@@ -247,6 +328,10 @@ namespace hbqj {
             if (g_get_view_matrix_func) {
                 Mhook_Unhook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func));
                 log("Unhook GetViewMatrix().");
+            }
+            if (g_get_active_camera_func) {
+                Mhook_Unhook(reinterpret_cast<PVOID *>(&g_get_active_camera_func));
+                log("Unhook GetActiveCamera().");
             }
 
             state::g_cleanup_completed = true;
@@ -279,16 +364,6 @@ namespace hbqj {
             //                     g_view_matrix->matrix[15]
             //     ).c_str());
             // }
-            if (memory.initialized) {
-                auto layout_mode = memory.GetLayoutMode().value_or(-1);
-                if (layout_mode == HousingLayoutMode::Rotate) {
-                    const auto& pos = memory.GetActivePosition();
-                    const auto& rot = memory.GetActiveRotation();
-                    if (pos.has_value() && rot.has_value()) {
-                        log(std::format("{}, {}", pos.value(), rot.value()).c_str());
-                    }
-                }
-            }
 
             if (g_resized) {
                 log("Handle window resize, cleanup ImGui resources and re-initialize in next Present call");
@@ -306,8 +381,40 @@ namespace hbqj {
             ImGui::NewFrame();
 
             // ImGui::ShowDemoWindow(&is_demo_window_open);
+            if (memory.initialized && g_view_matrix) {
+                auto layout_mode = memory.GetLayoutMode().value_or(-1);
+                if (layout_mode == HousingLayoutMode::Rotate) {
+                    const auto &pos = memory.GetActivePosition();
+                    const auto &rot = memory.GetActiveRotation();
+                    if (pos.has_value() && rot.has_value()) {
+                        log(std::format("{}, {}", pos.value(), rot.value()).c_str());
 
-            DrawImGuizmo();
+                        item_position[0] = pos.value().x;
+                        item_position[1] = pos.value().y;
+                        item_position[2] = pos.value().z;
+
+                        const auto &rotations = QuaternionToEulerAngles(rot.value());
+                        for (int i = 0; i < 3; i++) {
+                            item_rotation[i] = rotations[i];
+                        }
+
+                        ImGuizmo::RecomposeMatrixFromComponents(
+                                item_position,
+                                item_rotation,
+                                matrix_scale,
+                                item_matrix);
+
+                        for (int i = 0; i < 16; i++) {
+                            view_projection_matrix[i] = g_view_matrix->matrix[i];
+                        }
+
+                        DrawImGuizmo();
+                    }
+                }
+            }
+
+
+            // DrawImGuizmo();
 
             ImGui::Render();
             state::g_d3d_device_context->OMSetRenderTargets(1, &state::g_main_render_target_view, nullptr);

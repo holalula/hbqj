@@ -1,9 +1,34 @@
 #pragma once
 
+#include <array>
 #include <algorithm>
 #include <cmath>
 
 namespace hbqj {
+    static constexpr double Pi = 3.14159265358979323846;
+    static constexpr double RadToDeg = 360 / (Pi * 2);
+    static constexpr double DegToRad = (Pi * 2) / 360;
+
+    // Convert quaternion to euler angles (in degrees)
+    std::array<float, 3> QuaternionToEulerAngles(const Quaternion &quaternion) {
+        Quaternion q{};
+        // remap quaternion components to match target coordinate system
+        q.x = quaternion.w;
+        q.y = quaternion.z;
+        q.z = quaternion.x;
+        q.w = quaternion.y;
+
+        auto x = static_cast<float>(asin(2. * (q.x * q.z - q.w * q.y)));
+        auto y = static_cast<float>(atan2(2. * q.x * q.w + 2. * q.y * q.z, 1 - 2. * (q.z * q.z + q.w * q.w)));
+        auto z = static_cast<float>(atan2(2. * q.x * q.y + 2. * q.z * q.w, 1 - 2. * (q.y * q.y + q.z * q.z)));
+
+        x *= RadToDeg;
+        y *= RadToDeg;
+        z *= RadToDeg;
+
+        return {x, y, z};
+    }
+
     void Frustum(float left, float right, float bottom, float top, float znear, float zfar, float *m16) {
         float temp, temp2, temp3, temp4;
         temp = 2.0f * znear;
