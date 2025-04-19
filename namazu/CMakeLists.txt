@@ -17,17 +17,17 @@ set(__ImGuizmo
     "${imguizmo_SOURCE_DIR}/ImGuizmo.cpp"
 )
 
-set(__HBQJ
-    "${hbqj_SOURCE_DIR}/hbqj/src/process.cpp"
-    "${hbqj_SOURCE_DIR}/hbqj/src/signature_manager.cpp"
-    "${hbqj_SOURCE_DIR}/hbqj/src/signature_scanner.cpp"
-    "${hbqj_SOURCE_DIR}/hbqj/src/memory.cpp"
+set(__ROSEWOOD
+    "${CMAKE_SOURCE_DIR}/rosewood/src/process.cpp"
+    "${CMAKE_SOURCE_DIR}/rosewood/src/signature_manager.cpp"
+    "${CMAKE_SOURCE_DIR}/rosewood/src/signature_scanner.cpp"
+    "${CMAKE_SOURCE_DIR}/rosewood/src/memory.cpp"
 )
 
 set(SOURCE_FILES
     ${__ImGui}
     ${__ImGuizmo}
-    ${__HBQJ}
+    ${__ROSEWOOD}
     "src/dllmain.cpp"
 )
 
@@ -58,7 +58,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
     target_include_directories(${PROJECT_NAME} PUBLIC
         "$<$<CONFIG:Release>:"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/include;"
-            "${hbqj_SOURCE_DIR}/hbqj/src/include"
+            "${hbqj_SOURCE_DIR}/rosewood/src/include"
             "${imgui_SOURCE_DIR}"
             "${imgui_SOURCE_DIR}/backends"
             "${mhook_SOURCE_DIR}"

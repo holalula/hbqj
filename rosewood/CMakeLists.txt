@@ -1,4 +1,4 @@
-set(PROJECT_NAME hbqj)
+set(PROJECT_NAME rosewood)
 
 ################################################################################
 # Source files
@@ -16,7 +16,7 @@ set(SOURCE_FILES
 ################################################################################
 # Target
 ################################################################################
-add_library(hbqj SHARED ${SOURCE_FILES})
+add_library(rosewood SHARED ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
 
@@ -25,7 +25,7 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 )
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE hbqj)
+set(ROOT_NAMESPACE rosewood)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     VS_GLOBAL_KEYWORD "Win32Proj"
@@ -55,7 +55,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
         "$<$<CONFIG:Release>:"
             "NDEBUG"
         ">"
-        "HBQJ_EXPORTS;"
+        "ROSEWOOD_EXPORTS;"
         "_WINDOWS;"
         "_USRDLL;"
         "UNICODE;"
@@ -101,8 +101,8 @@ endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
 
-add_custom_command(TARGET hbqj POST_BUILD
+add_custom_command(TARGET rosewood POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/x64/Release/hbqj.dll"
-        "${CMAKE_BINARY_DIR}/hbqj/test/hbqj.dll"
+        "${CMAKE_SOURCE_DIR}/x64/Release/rosewood.dll"
+        "${CMAKE_BINARY_DIR}/rosewood/test/rosewood.dll"
 )

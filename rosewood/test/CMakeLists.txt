@@ -8,7 +8,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
- add_executable(hbqj_tests
+ add_executable(rosewood_tests
      main_test.cpp
      signature_manager_test.cpp
      utils/string_utils_test.cpp
@@ -21,18 +21,18 @@ FetchContent_MakeAvailable(googletest)
      hook_test.cpp
  )
 
-# add_dependencies(hbqj_tests namazu)
+add_dependencies(rosewood_tests namazu)
 
-target_link_libraries(hbqj_tests
+target_link_libraries(rosewood_tests
     PRIVATE
     gtest_main
-    hbqj
+    rosewood
 )
 
-target_include_directories(hbqj_tests
+target_include_directories(rosewood_tests
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/include
 )
 
 include(GoogleTest)
-gtest_discover_tests(hbqj_tests)
+gtest_discover_tests(rosewood_tests)

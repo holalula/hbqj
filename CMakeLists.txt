@@ -120,7 +120,7 @@ FetchContent_Populate(imguizmo)
 # Sub-projects
 ################################################################################
 add_subdirectory(namazu)
-add_subdirectory(hbqj)
+add_subdirectory(rosewood)
 add_subdirectory(test)
 add_subdirectory(client)
 

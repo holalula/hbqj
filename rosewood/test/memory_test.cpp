@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include <memory.h>
+#include <memory_operation.h>
 #include <iostream>
 #include <fstream>
 
-#include "memory.h"
+#include "memory_operation.h"
 
 namespace hbqj {
 	TEST(MemoryTest, GetActivePositionAndRotationExample) {

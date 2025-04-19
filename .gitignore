@@ -11,8 +11,8 @@
 *.filters
 CMakeSettings.json
 
-/hbqj/Debug
-/hbqj/x64
+/rosewood/Debug
+/rosewood/x64
 
 /namazu/Debug
 /namazu/x64
