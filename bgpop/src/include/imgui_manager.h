@@ -242,6 +242,12 @@ namespace hbqj {
                 log("Unhook Present().");
             }
 
+            // TODO: clean up this hook elsewhere
+            if (g_get_view_matrix_func) {
+                Mhook_Unhook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func));
+                log("Unhook GetViewMatrix().");
+            }
+
             state::g_cleanup_completed = true;
             log("complete cleanup, call original Present().");
             return state::g_present(swap_chain, sync_interval, flags);
@@ -262,6 +268,16 @@ namespace hbqj {
 
         if (state::g_initialized) {
             // log("Render ImGui...");
+
+            // log(std::format("g_view_matrix_addr: 0x{:x}", g_view_matrix_addr).c_str());
+            if (g_view_matrix) {
+                log(std::format("{}, {}, {}, {}",
+                                g_view_matrix->matrix[0],
+                                g_view_matrix->matrix[1],
+                                g_view_matrix->matrix[14],
+                                g_view_matrix->matrix[15]
+                ).c_str());
+            }
 
             if (g_resized) {
                 log("Handle window resize, cleanup ImGui resources and re-initialize in next Present call");
