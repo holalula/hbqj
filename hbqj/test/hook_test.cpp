@@ -4,6 +4,8 @@
 #include "utils/string_utils.h"
 
 namespace hbqj {
+    static const char *dll_name = "namazu.dll";
+
     TEST(HookTest, ListAllModules) {
         GTEST_SKIP();
 
@@ -25,8 +27,7 @@ namespace hbqj {
         const auto &dir = std::filesystem::current_path();
         // Note: Path is relative to build directory. Adjust if build location changes.
         const auto &dll_path =
-                dir.parent_path().parent_path().parent_path() / "x64" / "Release" /
-                "bgpop.dll";
+                dir.parent_path().parent_path().parent_path() / "x64" / "Release" / dll_name;
         hook.log.info("current dir: {}", dir.string());
         hook.log.info("dll path: {}", utf16_to_utf8(dll_path.wstring()));
 
@@ -51,8 +52,7 @@ namespace hbqj {
         const auto &dir = std::filesystem::current_path();
         // Note: Path is relative to build directory. Adjust if build location changes.
         const auto &dll_path =
-                dir.parent_path().parent_path().parent_path() / "x64" / "Release" /
-                "bgpop.dll";
+                dir.parent_path().parent_path().parent_path() / "x64" / "Release" / dll_name;
         hook.log.info("current dir: {}", dir.string());
         hook.log.info("dll path: {}", utf16_to_utf8(dll_path.wstring()));
 
@@ -66,7 +66,7 @@ namespace hbqj {
         // GTEST_SKIP();
         Hook hook;
 
-        auto result = hook.Unload(L"bgpop.dll", "ffxiv_dx11.exe");
+        auto result = hook.Unload(L"namazu.dll", "ffxiv_dx11.exe");
         if (!result) {
             hook.log.error("{}", result.error());
         }

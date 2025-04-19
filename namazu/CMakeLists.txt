@@ -1,4 +1,4 @@
-set(PROJECT_NAME bgpop)
+set(PROJECT_NAME namazu)
 
 ################################################################################
 # Source files
@@ -34,14 +34,14 @@ set(SOURCE_FILES
 ################################################################################
 # Target
 ################################################################################
-add_library(bgpop SHARED ${SOURCE_FILES})
+add_library(namazu SHARED ${SOURCE_FILES})
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/include/pch.h>"
 )
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE bgpop)
+set(ROOT_NAMESPACE namazu)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     VS_GLOBAL_KEYWORD "Win32Proj"
@@ -78,7 +78,7 @@ if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
         "$<$<CONFIG:Release>:"
             "NDEBUG"
         ">"
-        "BGPOP_EXPORTS;"
+        "NAMAZU_EXPORTS;"
         "_WINDOWS;"
         "_USRDLL;"
         "UNICODE;"
@@ -124,7 +124,7 @@ endif()
 # Dependencies
 ################################################################################
 # Link with other targets.
-target_link_libraries(bgpop PUBLIC
+target_link_libraries(namazu PUBLIC
     nlohmann_json::nlohmann_json
     mhook
     d3d11.lib
