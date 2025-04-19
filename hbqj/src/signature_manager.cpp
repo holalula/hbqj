@@ -24,6 +24,7 @@ namespace hbqj {
     }
 
     bool SignatureManager::LoadAndVerifyCache(const std::filesystem::path& cache_path, uint64_t current_write_time) {
+        log.info("LoadAndVerifyCache, cache path: {}", cache_path.string());
         try {
             if (!std::filesystem::exists(cache_path)) {
                 return false;

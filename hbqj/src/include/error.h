@@ -7,7 +7,7 @@
 namespace hbqj {
 	struct SignatureNotFoundError { std::string message; };
 	struct NullPointerError { std::string message; };
-	struct WinAPIError { DWORD error; };
+	struct WinAPIError { unsigned long error; };
 
 	using Error = std::variant<
 		SignatureNotFoundError,

@@ -35,6 +35,22 @@ namespace hbqj {
 		return active_housing_item_addr;
 	}
 
+    std::expected<int32_t, Error> Memory::GetLayoutMode() {
+        TRY(housing_base_signature,
+            signature_manager_.GetSignature(SignatureType::BaseHouse));
+        TRY(housing_base_offset,
+            process_->CalculateTargetOffsetMov(housing_base_signature->addr - process_->GetBaseAddr()));
+        TRY(housing_addr,
+            process_->ReadMemory<Address>(process_->GetBaseAddr() + housing_base_offset));
+        TRY(housing_addr1,
+            process_->ReadMemory<Address>(housing_addr + 0x40));
+
+        TRY(mode,
+            process_->ReadMemory<int32_t>(housing_addr1));
+
+        return mode;
+    }
+
 	std::expected<Quaternion, Error> Memory::GetActiveRotation() {
 		TRY(active_housing_item,
 			GetActiveHousingItem());

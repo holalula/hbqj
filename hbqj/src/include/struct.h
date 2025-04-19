@@ -12,7 +12,6 @@ namespace hbqj {
 		float x;
 		float y;
 		float z;
-		std::optional<float> kk;
 
 		NLOHMANN_DEFINE_TYPE_INTRUSIVE(Position, x, y, z);
 	};
@@ -49,6 +48,13 @@ struct std::formatter<hbqj::Position> : std::formatter<std::string> {
 	auto format(const hbqj::Position& pos, format_context& ctx) const {
 		return format_to(ctx.out(), "Position(x={:.2f}, y={:.2f}, z={:.2f})", pos.x, pos.y, pos.z);
 	}
+};
+
+template<>
+struct std::formatter<hbqj::Quaternion> : std::formatter<std::string> {
+    auto format(const hbqj::Quaternion& rot, format_context& ctx) const {
+        return format_to(ctx.out(), "Rotation(x={:.2f}, y={:.2f}, z={:.2f}, w={:.2f})", rot.x, rot.y, rot.z, rot.w);
+    }
 };
 
 template<>

@@ -18,6 +18,9 @@ namespace hbqj {
 
 		auto result = manager_.GetSignature(SignatureType::BaseHouse);
 		EXPECT_TRUE(result.has_value());
+
+        auto view_matrix_offset = process->GetOffsetAddr(manager_.GetSignature(SignatureType::ViewMatrix).value()->addr);
+        process->log.info("ViewMatrix offset: 0x{:x}", process->CalculateTargetOffsetCall(view_matrix_offset).value());
 	}
 
 	TEST(SignatureManagerTest, SignatureNotFound) {

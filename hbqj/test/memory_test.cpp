@@ -55,4 +55,17 @@ namespace hbqj {
 			process->log.error("{}", result.error());
 		}
 	}
+
+    TEST(MemoryTest, GetLayoutMode) {
+        auto process = std::make_shared<Process>();
+        Memory memory;
+        memory.Initialize(process);
+
+        const auto& result = memory.GetLayoutMode();
+        if (result) {
+            process->log.info("Mode: {}", result.value());
+        } else {
+            process->log.info("Not found.");
+        }
+    }
 }

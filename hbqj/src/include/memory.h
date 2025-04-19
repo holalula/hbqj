@@ -13,11 +13,18 @@
 
 
 namespace hbqj {
+    enum HousingLayoutMode {
+        None = 0,
+        Move = 1,
+        Rotate = 2,
+    };
+
 	class __declspec(dllexport) Memory {
 	public:
 		std::expected<void, Error> Initialize(std::shared_ptr<Process> process) {
 			process_ = process;
 			signature_manager_.Initialize(process_);
+            initialized = true;
 			return {};
 		}
 
@@ -27,6 +34,8 @@ namespace hbqj {
 
 		std::expected<Address, Error> GetActiveHousingItem();
 
+        std::expected<int32_t, Error> GetLayoutMode();
+
 		std::expected<Position, Error> GetActivePosition();
 
 		std::expected<Quaternion, Error> GetActiveRotation();
@@ -34,6 +43,8 @@ namespace hbqj {
 		std::expected<Position, Error> SetActivePosition(std::optional<float> x, std::optional<float> y, std::optional<float> z);
 
 		std::expected<std::vector<HousingItem>, Error> GetFurnitureList();
+
+        bool initialized = false;
 	private:
 		SignatureManager signature_manager_;
 		Logger log = Logger::GetLogger("Memory");
