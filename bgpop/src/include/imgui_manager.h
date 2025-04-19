@@ -6,6 +6,7 @@
 #include <ImGuizmo.h>
 
 #include "d3d_manager.h"
+#include "game_memory.h"
 #include "global_state.h"
 #include "math_utils.h"
 
@@ -270,13 +271,23 @@ namespace hbqj {
             // log("Render ImGui...");
 
             // log(std::format("g_view_matrix_addr: 0x{:x}", g_view_matrix_addr).c_str());
-            if (g_view_matrix) {
-                log(std::format("{}, {}, {}, {}",
-                                g_view_matrix->matrix[0],
-                                g_view_matrix->matrix[1],
-                                g_view_matrix->matrix[14],
-                                g_view_matrix->matrix[15]
-                ).c_str());
+            // if (g_view_matrix) {
+            //     log(std::format("{}, {}, {}, {}",
+            //                     g_view_matrix->matrix[0],
+            //                     g_view_matrix->matrix[1],
+            //                     g_view_matrix->matrix[14],
+            //                     g_view_matrix->matrix[15]
+            //     ).c_str());
+            // }
+            if (memory.initialized) {
+                auto layout_mode = memory.GetLayoutMode().value_or(-1);
+                if (layout_mode == HousingLayoutMode::Rotate) {
+                    const auto& pos = memory.GetActivePosition();
+                    const auto& rot = memory.GetActiveRotation();
+                    if (pos.has_value() && rot.has_value()) {
+                        log(std::format("{}, {}", pos.value(), rot.value()).c_str());
+                    }
+                }
             }
 
             if (g_resized) {

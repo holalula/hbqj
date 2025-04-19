@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "game_camera.h"
+#include "game_memory.h"
 #include "imgui_manager.h"
 #include "logger.h"
 #include "d3d_manager.h"
@@ -37,16 +38,18 @@ namespace hbqj {
 
         }
 
-        log("Init SM.");
         auto process = std::make_shared<Process>();
-        SignatureManager sm_;
-        sm_.Initialize(process);
-        log("Done.");
+        // log("Init SM.");
+        // SignatureManager sm_;
+        // sm_.Initialize(process);
+        // log("Done.");
 
         g_get_view_matrix_func = reinterpret_cast<GetViewMatrixFunc>
                 (process->GetBaseAddr() + get_view_matrix_func_offset);
         Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func),
                       reinterpret_cast<PVOID>(GetViewMatrixHook));
+
+        memory.Initialize(process);
 
         return 0;
     }

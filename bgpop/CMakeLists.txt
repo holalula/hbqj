@@ -21,6 +21,7 @@ set(__HBQJ
     "${hbqj_SOURCE_DIR}/hbqj/src/process.cpp"
     "${hbqj_SOURCE_DIR}/hbqj/src/signature_manager.cpp"
     "${hbqj_SOURCE_DIR}/hbqj/src/signature_scanner.cpp"
+    "${hbqj_SOURCE_DIR}/hbqj/src/memory.cpp"
 )
 
 set(SOURCE_FILES
