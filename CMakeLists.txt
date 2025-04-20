@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19.0 FATAL_ERROR)
 
 set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
 set(CMAKE_CXX_STANDARD 23)
@@ -8,29 +8,29 @@ project(hbqj C CXX)
 ################################################################################
 # Set target arch type if empty. Visual studio solution generator provides it.
 ################################################################################
-if(NOT CMAKE_VS_PLATFORM_NAME)
+if (NOT CMAKE_VS_PLATFORM_NAME)
     set(CMAKE_VS_PLATFORM_NAME "x64")
-endif()
+endif ()
 message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
 
-if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"
-     OR "${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86"))
+if (NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"
+        OR "${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86"))
     message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")
-endif()
+endif ()
 
 ################################################################################
 # Global configuration types
 ################################################################################
 set(CMAKE_CONFIGURATION_TYPES
-    "Debug"
-    "Release"
-    CACHE STRING "" FORCE
+        "Debug"
+        "Release"
+        CACHE STRING "" FORCE
 )
 
 ################################################################################
 # Global compiler options
 ################################################################################
-if(MSVC)
+if (MSVC)
     # remove default flags provided with CMake for MSVC
     set(CMAKE_C_FLAGS "")
     set(CMAKE_C_FLAGS_DEBUG "")
@@ -38,12 +38,12 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "")
     set(CMAKE_CXX_FLAGS_DEBUG "")
     set(CMAKE_CXX_FLAGS_RELEASE "")
-endif()
+endif ()
 
 ################################################################################
 # Global linker options
 ################################################################################
-if(MSVC)
+if (MSVC)
     # remove default flags provided with CMake for MSVC
     set(CMAKE_EXE_LINKER_FLAGS "")
     set(CMAKE_MODULE_LINKER_FLAGS "")
@@ -57,15 +57,15 @@ if(MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS}")
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS}")
     set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS}")
-endif()
+endif ()
 
 ################################################################################
 # Nuget packages function stub.
 ################################################################################
 function(use_package TARGET PACKAGE VERSION)
     message(WARNING "No implementation of use_package. Create yours. "
-                    "Package \"${PACKAGE}\" with version \"${VERSION}\" "
-                    "for target \"${TARGET}\" is ignored!")
+            "Package \"${PACKAGE}\" with version \"${VERSION}\" "
+            "for target \"${TARGET}\" is ignored!")
 endfunction()
 
 ################################################################################
@@ -89,32 +89,40 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(FetchContent)
 
 FetchContent_Declare(
-    json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+        json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
 )
 FetchContent_MakeAvailable(json)
 
 FetchContent_declare(
-    mhook
-    GIT_REPOSITORY https://github.com/holalula/mhook.git
-    GIT_TAG 92d195dbdfd23c5ff6faf7412b0a64afe2966624
+        mhook
+        GIT_REPOSITORY https://github.com/holalula/mhook.git
+        GIT_TAG 92d195dbdfd23c5ff6faf7412b0a64afe2966624
 )
 set(MHOOK_TESTS OFF CACHE INTERNAL "")
 FetchContent_MakeAvailable(mhook)
 
 FetchContent_Declare(
-    imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG a26fcf58cc2d0cfeee8b98ad8517af998f75c27e
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG a26fcf58cc2d0cfeee8b98ad8517af998f75c27e
 )
 FetchContent_Populate(imgui)
 
 FetchContent_Declare(
-    imguizmo
-    GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
-    GIT_TAG 2310acda820d7383d4c4884b7945ada92cd16a47
+        imguizmo
+        GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
+        GIT_TAG 2310acda820d7383d4c4884b7945ada92cd16a47
 )
 FetchContent_Populate(imguizmo)
+
+set(OPENSSL_USE_STATIC_LIBS TRUE)
+set(OPENSSL_MSVC_STATIC_RT TRUE)
+
+find_package(OpenSSL REQUIRED)
+if (NOT OpenSSL_FOUND)
+    message(FATAL_ERROR "OpenSSL not found. Please install OpenSSL.")
+endif ()
 
 ################################################################################
 # Sub-projects

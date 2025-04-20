@@ -2,36 +2,39 @@ enable_testing()
 
 include(FetchContent)
 FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.12.1
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG release-1.12.1
 )
 FetchContent_MakeAvailable(googletest)
 
- add_executable(rosewood_tests
-     main_test.cpp
-     signature_manager_test.cpp
-     utils/string_utils_test.cpp
-     signature_scanner_test.cpp
-     signature_manager_test.cpp
-     log_test.cpp
-     memory_test.cpp
-     macro_test.cpp
-     file_test.cpp
-     hook_test.cpp
- )
+add_executable(rosewood_tests
+        main_test.cpp
+        signature_manager_test.cpp
+        utils/string_utils_test.cpp
+        signature_scanner_test.cpp
+        signature_manager_test.cpp
+        log_test.cpp
+        memory_test.cpp
+        macro_test.cpp
+        file_test.cpp
+        hook_test.cpp
+        file/decryption/decryption_test.cpp
+)
 
-add_dependencies(rosewood_tests namazu)
+# add_dependencies(rosewood_tests namazu)
 
 target_link_libraries(rosewood_tests
-    PRIVATE
-    gtest_main
-    rosewood
+        PRIVATE
+        gtest_main
+        rosewood
+        OpenSSL::SSL
+        OpenSSL::Crypto
 )
 
 target_include_directories(rosewood_tests
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/include
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/include
 )
 
 include(GoogleTest)
