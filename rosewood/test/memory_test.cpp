@@ -68,4 +68,17 @@ namespace hbqj {
             process->log.info("Not found.");
         }
     }
+
+    TEST(MemoryTest, GetHousingStructureAddr) {
+        auto process = std::make_shared<Process>();
+        Memory memory;
+        memory.Initialize(process);
+
+        const auto& result = memory.GetHousingStructureAddr();
+        if (result) {
+            process->log.info("HousingStructure: 0x{:x}", result.value());
+        } else {
+            process->log.info("Not found.");
+        }
+    }
 }

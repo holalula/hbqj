@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <expected>
 #include <string_view>
 #include <Windows.h>
@@ -9,7 +10,7 @@
 #include "log.h"
 
 namespace hbqj {
-	typedef unsigned __int64 Address;
+	typedef uint64_t Address;
 	typedef uint8_t Byte;
 
 #pragma pack(push, 1)

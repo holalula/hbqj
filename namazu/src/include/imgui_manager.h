@@ -10,6 +10,7 @@
 #include "global_state.h"
 #include "preview_housing.h"
 #include "math_utils.h"
+#include "load_housing.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -299,11 +300,12 @@ namespace hbqj {
                     matrix_scale
             );
 
-            log(std::format("Update position to: {:.2f}, {:.2f}, {:.2f}",
-                            item_position[0],
-                            item_position[1],
-                            item_position[2]
-            ).c_str());
+            // log(std::format("Update position to: {:.2f}, {:.2f}, {:.2f}",
+            //                 item_position[0],
+            //                 item_position[1],
+            //                 item_position[2]
+            // ).c_str());
+
             memory.SetActivePosition(
                     item_position[0],
                     item_position[1],
@@ -337,6 +339,14 @@ namespace hbqj {
             if (PreviewHousing::load_housing_func) {
                 Mhook_Unhook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func));
                 log("Unhook LoadHouing().");
+            }
+            if (LoadHousing::select_item_func) {
+                Mhook_Unhook(reinterpret_cast<PVOID *>(&LoadHousing::select_item_func));
+                log("Unhook SelectItem().");
+            }
+            if (LoadHousing::place_item_func) {
+                Mhook_Unhook(reinterpret_cast<PVOID *>(&LoadHousing::place_item_func));
+                log("Unhook PlaceItem().");
             }
 
             state::g_cleanup_completed = true;
@@ -385,6 +395,25 @@ namespace hbqj {
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
 
+            {
+                ImGui::SetNextWindowPos({20, 20}, ImGuiCond_FirstUseEver);
+                ImGui::SetNextWindowSize({400, 400});
+                ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_None);
+
+                if (ImGui::Button("Place Housing Item")) {
+                    log("Placing a housing item from debug window.");
+                    if (memory.initialized) {
+                        const auto& addr = memory.GetHousingStructureAddr();
+                        if (addr.has_value()) {
+                            log("Trying to place item..");
+                            LoadHousing::place_item_func(addr.value(), 0);
+                        }
+                    }
+                }
+
+                ImGui::End();
+            }
+
             // ImGui::ShowDemoWindow(&is_demo_window_open);
             if (memory.initialized && g_view_matrix) {
                 auto layout_mode = memory.GetLayoutMode().value_or(-1);
@@ -392,7 +421,7 @@ namespace hbqj {
                     const auto &pos = memory.GetActivePosition();
                     const auto &rot = memory.GetActiveRotation();
                     if (pos.has_value() && rot.has_value()) {
-                        log(std::format("{}, {}", pos.value(), rot.value()).c_str());
+                        // log(std::format("{}, {}", pos.value(), rot.value()).c_str());
 
                         item_position[0] = pos.value().x;
                         item_position[1] = pos.value().y;

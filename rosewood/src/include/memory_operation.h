@@ -36,6 +36,8 @@ namespace hbqj {
 
         std::expected<int32_t, Error> GetLayoutMode();
 
+        std::expected<int64_t, Error> GetHousingStructureAddr();
+
 		std::expected<Position, Error> GetActivePosition();
 
 		std::expected<Quaternion, Error> GetActiveRotation();

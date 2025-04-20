@@ -33,20 +33,20 @@ namespace hbqj {
 #pragma pack()
 
         static void LoadHousingFuncHook(int64_t housing, int64_t items) {
-            log(std::format("Load: 0x{:x}, 0x{:x}", housing, items).c_str());
-            auto loaded_items = reinterpret_cast<LoadedHousingItemList*>(items + 12);
-            if (loaded_items) {
-                for (int i = 0; i < 100; i++) {
-                    if (loaded_items->list[i].item_id != 0) {
-                        const auto& item = loaded_items->list[i];
-                        log(std::format("{}, {:.2f}, {:.2f}, {:.2f}",
-                                        item.item_id,
-                                        item.x,
-                                        item.y,
-                                        item.z).c_str());
-                    }
-                }
-            }
+            // log(std::format("Load: 0x{:x}, 0x{:x}", housing, items).c_str());
+            // auto loaded_items = reinterpret_cast<LoadedHousingItemList*>(items + 12);
+            // if (loaded_items) {
+            //     for (int i = 0; i < 100; i++) {
+            //         if (loaded_items->list[i].item_id != 0) {
+            //             const auto& item = loaded_items->list[i];
+            //             log(std::format("{}, {:.2f}, {:.2f}, {:.2f}",
+            //                             item.item_id,
+            //                             item.x,
+            //                             item.y,
+            //                             item.z).c_str());
+            //         }
+            //     }
+            // }
             return load_housing_func(housing, items);
         }
     };

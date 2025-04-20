@@ -8,6 +8,7 @@
 #include "game_memory.h"
 #include "imgui_manager.h"
 #include "preview_housing.h"
+#include "load_housing.h"
 #include "logger.h"
 #include "d3d_manager.h"
 #include "process.h"
@@ -61,6 +62,18 @@ namespace hbqj {
                 (process->GetBaseAddr() + PreviewHousing::load_housing_func_offset);
         Mhook_SetHook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func),
                       reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
+
+        LoadHousing::select_item_func_offset = 0x6D1520;
+        LoadHousing::select_item_func = reinterpret_cast<SelectItemFunc>
+                (process->GetBaseAddr() + LoadHousing::select_item_func_offset);
+        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::select_item_func),
+                      reinterpret_cast<PVOID>(LoadHousing::SelectItemFuncHook));
+
+        LoadHousing::place_item_func_offset = 0x6D1E80;
+        LoadHousing::place_item_func = reinterpret_cast<PlaceItemFunc>
+                (process->GetBaseAddr() + LoadHousing::place_item_func_offset);
+        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::place_item_func),
+                      reinterpret_cast<PVOID>(LoadHousing::PlaceItemFuncHook));
 
         memory.Initialize(process);
 

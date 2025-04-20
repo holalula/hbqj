@@ -3,5 +3,5 @@
 #include "memory_operation.h"
 
 namespace hbqj {
-    Memory memory;
+    static Memory memory{};
 }
