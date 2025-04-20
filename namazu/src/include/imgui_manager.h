@@ -316,6 +316,23 @@ namespace hbqj {
         ImGui::End();
     }
 
+    uint64_t ParseHexString(const std::string& hex_str) {
+        try {
+            std::string str = hex_str;
+            if (str.substr(0, 2) == "0x") {
+                str = str.substr(2);
+            }
+            return std::stoull(str, nullptr, 16);
+        } catch (const std::exception& e) {
+            log(std::format("Invalid hex str: {}", hex_str).c_str());
+            return 0;
+        }
+    }
+
+    char parameter_1[32] = { 0 };
+    char parameter_2[32] = { 0 };
+    char buffer[4096] = { 0 };
+
     HRESULT __stdcall PresentHook(IDXGISwapChain *swap_chain, UINT sync_interval, UINT flags) {
         // log("Call PresentHook.");
 
@@ -396,9 +413,40 @@ namespace hbqj {
             ImGui::NewFrame();
 
             {
+                // Show Debug Window
                 ImGui::SetNextWindowPos({20, 20}, ImGuiCond_FirstUseEver);
                 ImGui::SetNextWindowSize({400, 400});
                 ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_None);
+
+                if (memory.initialized) {
+                    const auto& items = memory.GetFurnitureList();
+                    if (items) {
+                        std::string items_str;
+                        for (const auto& item : items.value()) {
+                            // log(std::format("{}", item).c_str());
+                            items_str.append(std::format("{}\n", item));
+                        }
+
+                        if (items_str.length() < 4096) {
+                            strncpy_s(buffer, items_str.c_str(), sizeof(items_str.c_str()) - 1);
+                        }
+                    }
+                }
+
+                ImGui::InputText("ItemsStr", buffer, sizeof(buffer));
+
+                ImGui::InputText("Parameter1", parameter_1, sizeof(parameter_1));
+                ImGui::InputText("Parameter2", parameter_2, sizeof(parameter_2));
+
+                if (ImGui::Button("Select Housing Item")) {
+                    if (memory.initialized) {
+                        const auto& addr = memory.GetHousingStructureAddr();
+                        if (addr.has_value()) {
+                            auto item_addr = ParseHexString(std::string(parameter_2));
+                            LoadHousing::select_item_func(addr.value(), static_cast<int64_t>(item_addr));
+                        }
+                    }
+                }
 
                 if (ImGui::Button("Place Housing Item")) {
                     log("Placing a housing item from debug window.");
@@ -406,7 +454,10 @@ namespace hbqj {
                         const auto& addr = memory.GetHousingStructureAddr();
                         if (addr.has_value()) {
                             log("Trying to place item..");
-                            LoadHousing::place_item_func(addr.value(), 0);
+
+                            auto item_addr = ParseHexString(std::string(parameter_2));
+
+                            LoadHousing::place_item_func(addr.value(), static_cast<int64_t>(item_addr));
                         }
                     }
                 }
