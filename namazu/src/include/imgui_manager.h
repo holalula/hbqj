@@ -8,6 +8,7 @@
 #include "d3d_manager.h"
 #include "game_memory.h"
 #include "global_state.h"
+#include "preview_housing.h"
 #include "math_utils.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -332,6 +333,10 @@ namespace hbqj {
             if (g_get_active_camera_func) {
                 Mhook_Unhook(reinterpret_cast<PVOID *>(&g_get_active_camera_func));
                 log("Unhook GetActiveCamera().");
+            }
+            if (PreviewHousing::load_housing_func) {
+                Mhook_Unhook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func));
+                log("Unhook LoadHouing().");
             }
 
             state::g_cleanup_completed = true;

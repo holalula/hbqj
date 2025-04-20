@@ -7,6 +7,7 @@
 #include "game_camera.h"
 #include "game_memory.h"
 #include "imgui_manager.h"
+#include "preview_housing.h"
 #include "logger.h"
 #include "d3d_manager.h"
 #include "process.h"
@@ -54,6 +55,12 @@ namespace hbqj {
         (process->GetBaseAddr() + g_get_active_camera_offset);
         Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_active_camera_func),
                       reinterpret_cast<PVOID>(GetActiveCameraHook));
+
+        PreviewHousing::load_housing_func_offset = 0xC4A390;
+        PreviewHousing::load_housing_func = reinterpret_cast<LoadHousingFunc>
+                (process->GetBaseAddr() + PreviewHousing::load_housing_func_offset);
+        Mhook_SetHook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func),
+                      reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
 
         memory.Initialize(process);
 
