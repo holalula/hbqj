@@ -1,7 +1,7 @@
 #pragma once
 
 #include "file/deserialization/deserializer.h"
-#include "file/struct/hbqj.h"
+#include "file/struct/legacy.h"
 
 namespace hbqj {
     template<>
