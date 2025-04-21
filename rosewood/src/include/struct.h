@@ -26,18 +26,10 @@ namespace hbqj {
     };
 
     struct HousingItem {
-        HousingItem(
-                uint32_t t = 0,
-                Position p = Position{0, 0, 0},
-                float r = 0.0f,
-                Byte c = 0,
-                Address i = 0
-        ) : type(t), position(p), rotation(r), color(c), item_addr(i) {}
-
-        uint32_t type;
-        Position position;
-        float rotation;
-        Byte color;
+        uint32_t type = 0;
+        Position position = {0, 0, 0};
+        float rotation = 0;
+        Byte color = 0;
         Address item_addr = 0;
 
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(HousingItem, type, position, rotation, color);

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "file/deserialization/deserializer.h"
-#include "file/struct/hbqj.h"
+#include "file/struct/legacy.h"
 
 namespace hbqj {
     template<>
-    struct IDeserializer<HousingLayout> {
-        bool tryDeserialize(const std::vector<uint8_t> &data, HousingLayout &pos) {
+    struct IDeserializer<FurnitureLayout> {
+        bool tryDeserialize(const std::vector<uint8_t> &data, FurnitureLayout &pos) {
             try {
                 std::string jsonStr(data.begin(), data.end());
 
@@ -18,7 +18,7 @@ namespace hbqj {
             }
         }
 
-        bool tryDeserialize(const nlohmann::json &j, HousingLayout &pos) {
+        bool tryDeserialize(const nlohmann::json &j, FurnitureLayout &pos) {
             try {
                 from_json(j, pos);
                 return true;
