@@ -8,6 +8,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
+if (MSVC)
+    add_compile_options(/EHsc)
+endif ()
+
 add_executable(rosewood_tests
         main_test.cpp
         signature_manager_test.cpp
@@ -21,6 +25,7 @@ add_executable(rosewood_tests
         hook_test.cpp
         file/decryption/decryption_test.cpp
         file/deserialization/deserialization_test.cpp
+        file/file_reader_test.cpp
 )
 
 # add_dependencies(rosewood_tests namazu)

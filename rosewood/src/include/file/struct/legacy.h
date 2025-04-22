@@ -9,8 +9,8 @@ using json = nlohmann::json;
 
 namespace hbqj {
     struct FurnitureItem {
-        int categoryId;
-        int count;
+        int categoryId = 0;
+        int count = 0;
         std::vector<float> posX;
         std::vector<float> posY;
         std::vector<float> posZ;

@@ -15,6 +15,8 @@
 namespace hbqj {
     class __declspec(dllexport) AesDecryptor : public IDecryptionHandler {
     public:
+        AesDecryptor() : AesDecryptor("wjsycdmm", "neversmile") {};
+
         AesDecryptor(const std::string &key, const std::string &salt);
 
         ~AesDecryptor() override;
