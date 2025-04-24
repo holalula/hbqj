@@ -7,6 +7,12 @@
 #include "struct.h"
 
 namespace hbqj {
+    struct LoadingPlanResult {
+        std::vector<HousingItem> matched_items;
+        std::vector<HousingItem> unmatched_current;
+        std::vector<HousingItem> unmatched_target;
+    };
+
     class __declspec(dllexport) LayoutLoader {
     private:
         static auto find_type_matches(const HousingItem &current_item,
@@ -46,13 +52,16 @@ namespace hbqj {
         }
 
     public:
-        static std::vector<HousingItem> GetLoadingPlan(
+        static LoadingPlanResult GetLoadingPlan(
                 std::vector<HousingItem> &current_layout,
                 std::vector<HousingItem> &target_layout) {
 
             std::vector<bool> is_matched(target_layout.size(), false);
+
             std::vector<HousingItem> loading_plan;
             loading_plan.reserve(current_layout.size());
+
+            std::vector<HousingItem> unmatched_current;
 
             for (const auto &current_item: current_layout) {
                 if (auto target_idx = find_best_match(current_item, target_layout, is_matched)) {
@@ -65,10 +74,23 @@ namespace hbqj {
                                                    .item_addr = current_item.item_addr
                                            });
                     is_matched[*target_idx] = true;
+                } else {
+                    unmatched_current.push_back(current_item);
                 }
             }
 
-            return loading_plan;
+            std::vector<HousingItem> unmatched_target;
+            for (size_t i = 0; i < target_layout.size(); i++) {
+                if (!is_matched[i]) {
+                    unmatched_target.push_back(target_layout[i]);
+                }
+            }
+
+            return LoadingPlanResult{
+                    .matched_items = std::move(loading_plan),
+                    .unmatched_current = std::move(unmatched_current),
+                    .unmatched_target = std::move(unmatched_target),
+            };
         }
     };
 }
