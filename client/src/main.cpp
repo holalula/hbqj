@@ -27,7 +27,6 @@ void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
-
 // Main code
 int main(int, char **) {
     // Create application window
@@ -155,12 +154,10 @@ int main(int, char **) {
 
             if (ImGui::BeginTabBar("MainTabBar", ImGuiTabBarFlags_None)) {
                 if (ImGui::BeginTabItem("PlaceHousingItem")) {
-                    ImGui::Text("Place Housing Item.");
                     PlaceHousingItemTab();
                     ImGui::EndTabItem();
                 }
                 if (ImGui::BeginTabItem("SaveAndLoad")) {
-                    ImGui::Text("Save And Load Furniture Positions");
                     SaveAndLoadTab();
                     ImGui::EndTabItem();
                 }
