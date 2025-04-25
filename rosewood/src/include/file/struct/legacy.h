@@ -49,7 +49,6 @@ namespace hbqj {
     struct FurnitureLayout {
         int size;
         std::vector<FurnitureItem> list;
-
     };
 
     static void from_json(const json &j, FurnitureLayout &layout) {

@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "file/struct/hbqj.h"
+#include "file/struct/legacy.h"
 #include "file/deserialization/deserializer.h"
 #include "file/decryption/decryption_handler.h"
 #include "log.h"
@@ -125,7 +127,50 @@ namespace hbqj {
             return std::nullopt;
         }
 
+        static HousingLayout ToHousingLayout(const DeserializationResult &result) {
+            if (result.type_name == typeid(FurnitureLayout).name()) {
+                return FurnitureLayoutToHousingLayout(std::any_cast<FurnitureLayout>(result.data));
+            } else if (result.type_name == typeid(HousingLayout).name()) {
+                return std::any_cast<HousingLayout>(result.data);
+            }
+
+            return {};
+        }
+
     private:
+        static HousingLayout FurnitureLayoutToHousingLayout(const FurnitureLayout &furniture_layout) {
+            HousingLayout layout{
+                    .metadata = {},
+                    .items = furniture_layout.list
+                             | std::views::transform(ExpandFurnitureItem)
+                             | std::views::join
+                             | std::ranges::to<std::vector>()
+            };
+
+            return layout;
+        }
+
+        static HousingItem ConvertFurnitureItemToHousingItem(const FurnitureItem &furniture, size_t index) {
+            return HousingItem{
+                    .type = static_cast<uint32_t>(furniture.categoryId),
+                    .position = {
+                            furniture.posX[index],
+                            furniture.posY[index],
+                            furniture.posZ[index]
+                    },
+                    .rotation = furniture.Rotation[index],
+                    .color = furniture.Color ? (*furniture.Color)[index] : static_cast<uint8_t>(0)
+            };
+        }
+
+        static std::vector<HousingItem> ExpandFurnitureItem(const FurnitureItem &furniture) {
+            return std::views::iota(0, furniture.count)
+                   | std::views::transform([&](size_t i) {
+                return ConvertFurnitureItemToHousingItem(furniture, i);
+            })
+                   | std::ranges::to<std::vector>();
+        }
+
         template<typename T>
         std::optional<T> TryDeserialize(const std::vector<uint8_t> &data) {
             if (!IsJsonFile(data)) {
