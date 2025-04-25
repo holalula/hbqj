@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <vector>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
@@ -94,6 +95,36 @@ namespace hbqj {
             return std::nullopt;
         }
 
+        struct DeserializationResult {
+            std::string type_name;
+            std::any data;
+        };
+
+        std::optional<DeserializationResult> ReadFileAutoDetect(const std::filesystem::path &path) {
+            std::vector<uint8_t> data = ReadBytesFromFile(path);
+            log.info("Read file: {}, length: {}", path.string(), data.size());
+
+            if (auto result = TryDeserializeAll(data)) {
+                return result;
+            }
+
+            log.info("Try to decrypt file..");
+
+            for (const auto &handler: decryption_handlers_) {
+                if (handler->isEncrypted(data)) {
+                    auto decrypted_data = handler->decrypt(data);
+                    log.info("Decrypted data length: {}", decrypted_data.size());
+                    if (!decrypted_data.empty()) {
+                        if (auto result = TryDeserializeAll(decrypted_data)) {
+                            return result;
+                        }
+                    }
+                }
+            }
+
+            return std::nullopt;
+        }
+
     private:
         template<typename T>
         std::optional<T> TryDeserialize(const std::vector<uint8_t> &data) {
@@ -106,6 +137,22 @@ namespace hbqj {
             auto deserializer = dynamic_cast<IDeserializer<T> *>(deserializers_[typeid(T).name()].get());
             if (deserializer && deserializer->tryDeserialize(data, result)) {
                 return result;
+            }
+
+            return std::nullopt;
+        }
+
+        std::optional<DeserializationResult> TryDeserializeAll(const std::vector<uint8_t> &data) {
+            if (!IsJsonFile(data)) {
+                log.info("Not a valid json file.");
+                return std::nullopt;
+            }
+
+            for (const auto &[type_name, deserializer]: deserializers_) {
+                auto result = deserializer->tryDeserializeAny(data);
+                if (result.has_value()) {
+                    return DeserializationResult{type_name, result};
+                }
             }
 
             return std::nullopt;

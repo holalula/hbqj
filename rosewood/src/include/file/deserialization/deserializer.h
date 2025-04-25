@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <nlohmann/json.hpp>
 #include <vector>
 #include <iostream>
@@ -10,6 +11,8 @@ namespace hbqj {
     class IDeserializerBase {
     public:
         virtual ~IDeserializerBase() = default;
+
+        virtual std::any tryDeserializeAny(const std::vector<uint8_t> &data) = 0;
     };
 
     template<typename T>
@@ -17,6 +20,14 @@ namespace hbqj {
         bool tryDeserialize(const nlohmann::json &j, T &output) { return false; };
 
         bool tryDeserialize(const std::vector<uint8_t> &data, T &output) { return false; };
+
+        std::any tryDeserializeAny(const std::vector<uint8_t> &data) override {
+            T result;
+            if (tryDeserialize(data, result)) {
+                return std::any(result);
+            }
+            return {};
+        }
 
         ~IDeserializer() = default;
     };

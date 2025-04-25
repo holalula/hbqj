@@ -75,4 +75,33 @@ namespace hbqj {
             std::cout << "Failed to read file." << std::endl;
         }
     }
+
+    TEST(FileReaderTest, AutoDetectType) {
+        // const char* file_name = "encrypted";
+        // const char* file_name = "hbqj.json";
+        // const char* file_name = "hbqj_w_color.json";
+        const char *file_name = "housing";
+        const auto &path = std::filesystem::current_path() / file_name;
+
+        FileReader reader;
+        reader.AddDecryptionHandler(std::make_unique<AesDecryptor>());
+
+        reader.RegisterDeserializer<FurnitureLayout>();
+        reader.RegisterDeserializer<HousingLayout>();
+
+        auto result = reader.ReadFileAutoDetect(path);
+        if (result) {
+            std::cout << "Detected type: " << result->type_name << std::endl;
+
+            if (result->type_name == typeid(HousingLayout).name()) {
+                const auto &layout = std::any_cast<HousingLayout>(result->data);
+                std::cout << std::format("{}", layout);
+            } else if (result->type_name == typeid(FurnitureLayout).name()) {
+                const auto &layout = std::any_cast<FurnitureLayout>(result->data);
+                std::cout << std::format("{}", layout);
+            }
+        } else {
+            std::cout << "Failed to read file." << std::endl;
+        }
+    }
 }
