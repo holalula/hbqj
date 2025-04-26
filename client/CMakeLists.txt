@@ -10,8 +10,14 @@ set(__ImGui
         "${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp"
 )
 
+set(__ROSEWOOD
+        "${CMAKE_SOURCE_DIR}/rosewood/src/process.cpp"
+        "${CMAKE_SOURCE_DIR}/rosewood/src/file/decryption/aes_decryptor.cpp"
+)
+
 set(SOURCE_FILES
         ${__ImGui}
+        ${__ROSEWOOD}
         src/main.cpp
 )
 
@@ -26,4 +32,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         d3d11
+        nlohmann_json::nlohmann_json
+        OpenSSL::SSL
+        OpenSSL::Crypto
 )

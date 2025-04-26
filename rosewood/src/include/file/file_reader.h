@@ -9,6 +9,7 @@
 
 #include "file/struct/hbqj.h"
 #include "file/struct/legacy.h"
+#include "file/decryption/aes_decryptor.h"
 #include "file/deserialization/deserializer.h"
 #include "file/decryption/decryption_handler.h"
 #include "log.h"
