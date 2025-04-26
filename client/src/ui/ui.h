@@ -10,7 +10,7 @@
 
 namespace hbqj {
 // State
-    static int WINDOW_WIDTH = 600;
+    static int WINDOW_WIDTH = 700;
     static int WINDOW_HEIGHT = 400;
     static int WINDOW_X = 100;
     static int WINDOW_Y = 100;

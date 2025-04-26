@@ -1,11 +1,22 @@
 #pragma once
 
 #include <codecvt>
+#include <vector>
+#include <map>
 
 #include "file/file_reader.h"
 #include "ui.h"
 
 namespace hbqj {
+    static const std::string unknown = "Unknown";
+
+    template<typename K, typename V>
+    static V GetOrDefault(const std::map<K, V> &map, const K &key, const V &default_value) {
+        auto it = map.find(key);
+        return it != map.end() ? it->second : default_value;
+    }
+
+    static FileReader file_reader;
 
     static ImGuiTableFlags table_flags =
             ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable
@@ -15,10 +26,26 @@ namespace hbqj {
             | ImGuiTableFlags_SizingFixedFit;
 
     struct HousingItemTableItem {
-        std::string name;
-        std::string color;
+        uint32_t name;
+        uint8_t color;
         float x, y, z, r;
     };
+
+    std::vector<HousingItemTableItem> table_items;
+
+    std::map<uint32_t, std::string> item_type_name_dict;
+    std::map<Byte, std::string> item_color_name_dict;
+
+    static HousingItemTableItem HouingItemToTableItem(const HousingItem &housing_item) {
+        return HousingItemTableItem{
+                .name = housing_item.type,
+                .color = housing_item.color,
+                .x = housing_item.position.x,
+                .y = housing_item.position.y,
+                .z = housing_item.position.z,
+                .r = housing_item.rotation,
+        };
+    }
 
     struct LoadingHousingLayoutTableItem {
         std::string name;
@@ -71,7 +98,16 @@ namespace hbqj {
                     // std::filesystem::path handles the system-specific encoding automatically
                     // const auto& file_path = hbqj::utf16_to_utf8(file_path_result.value());
                     const auto &file_path = path.string();
-                    log("{}", file_path);
+
+                    const auto &result = file_reader
+                            .DeserializeFile(path)
+                            .transform(FileReader::ToHousingLayout);
+
+                    if (result) {
+                        table_items = result.value().items
+                                      | std::views::transform(HouingItemToTableItem)
+                                      | std::ranges::to<std::vector<HousingItemTableItem>>();
+                    }
                 }
             }
         }
@@ -100,39 +136,41 @@ namespace hbqj {
         ImGuiStyle &style = ImGui::GetStyle();
         style.Colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
         style.Colors[ImGuiCol_TableRowBgAlt] = ImVec4(0.30f, 0.30f, 0.30f, 0.09f);
-        if (ImGui::BeginTable("furniture_list", 7, table_flags)) {
+        if (ImGui::BeginTable("furniture_list", 6, table_flags)) {
 
             // Declare columns
-            ImGui::TableSetupColumn("Name");
-            ImGui::TableSetupColumn("Color");
-            ImGui::TableSetupColumn("X");
-            ImGui::TableSetupColumn("Y");
-            ImGui::TableSetupColumn("Z");
-            ImGui::TableSetupColumn("Rotation");
-            ImGui::TableSetupColumn("Action");
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, 150.0f);
+            ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_None, 100.0f);
+            ImGui::TableSetupColumn("X", ImGuiTableColumnFlags_None, 80.0f);
+            ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_None, 80.0f);
+            ImGui::TableSetupColumn("Z", ImGuiTableColumnFlags_None, 80.0f);
+            ImGui::TableSetupColumn("Rotation", ImGuiTableColumnFlags_None, 80.0f);
 
             ImGui::TableSetupScrollFreeze(1, 1);
 
             ImGui::TableHeadersRow();
 
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Name0");
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text("Color0");
-            ImGui::TableSetColumnIndex(2);
-            if (ImGui::Button("X")) {
-                log("Click X");
+            for (const auto &item: table_items) {
+                ImGui::TableNextRow();
+
+                ImGui::TableSetColumnIndex(0);
+                ImGui::Text("%s", GetOrDefault(item_type_name_dict, item.name, unknown).c_str());
+
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text("%s", GetOrDefault(item_color_name_dict, item.color, unknown).c_str());
+
+                ImGui::TableSetColumnIndex(2);
+                ImGui::Text("%.3f", item.x);
+
+                ImGui::TableSetColumnIndex(3);
+                ImGui::Text("%.3f", item.y);
+
+                ImGui::TableSetColumnIndex(4);
+                ImGui::Text("%.3f", item.z);
+
+                ImGui::TableSetColumnIndex(5);
+                ImGui::Text("%.3f", item.r);
             }
-
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("Name0");
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text("Color0");
-            ImGui::TableSetColumnIndex(2);
-            ImGui::Text("X1");
-
             ImGui::EndTable();
         }
     }
