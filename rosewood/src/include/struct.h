@@ -28,7 +28,7 @@ namespace hbqj {
     struct HousingItem {
         uint32_t type = 0;
         Position position = {0, 0, 0};
-        float rotation = 0;
+        float rotation = 0; // y-axis rotation in radians
         Byte color = 0;
         Address item_addr = 0;
 

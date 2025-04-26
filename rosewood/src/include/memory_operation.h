@@ -19,7 +19,21 @@ namespace hbqj {
         Rotate = 2,
     };
 
-	class __declspec(dllexport) Memory {
+    Quaternion RadianToQuaternion(float radian) {
+        Quaternion q;
+        float halfAngle = radian / 2.0f;
+        q.x = 0.0f;
+        q.y = std::sin(halfAngle);
+        q.z = 0.0f;
+        q.w = std::cos(halfAngle);
+        return q;
+    }
+
+    float QuaternionToRadian(const Quaternion& q) {
+        return 2.0f * std::atan2(q.y, q.w);
+    }
+
+    class __declspec(dllexport) Memory {
 	public:
 		std::expected<void, Error> Initialize(std::shared_ptr<Process> process) {
 			process_ = process;
