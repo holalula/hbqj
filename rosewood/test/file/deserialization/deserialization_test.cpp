@@ -2,44 +2,34 @@
 #include <iostream>
 
 #include "file.h"
-#include "file/deserialization/legacy_deserializer.h"
-#include "file/deserialization/hbqj_deserializer.h"
+#include "file/struct/legacy.h"
+#include "file/struct/hbqj.h"
+#include "file/deserialization/deserializer.h"
 
 namespace hbqj {
-    TEST(DeserializationTest, Legacy_Without_Color) {
-        const auto &file = File::ReadFile(std::filesystem::current_path() / "hbqj.json");
-        IDeserializer<FurnitureLayout> deserializer{};
-
-        FurnitureLayout furnitureLayout;
-        if (deserializer.tryDeserialize(file, furnitureLayout)) {
-            std::cout << std::format("{}", furnitureLayout) << std::endl;
-            std::cout << "total size: " << furnitureLayout.size << std::endl;
-        } else {
-            std::cout << "Failed to deserialize file.";
-        }
-    }
-
     TEST(DeserializationTest, Legacy) {
-        const auto &file = File::ReadFile(std::filesystem::current_path() / "hbqj_w_color.json");
-        IDeserializer<FurnitureLayout> deserializer{};
+        std::vector<std::string> files{"hbqj.json", "hbqj_w_color.json"};
 
-        FurnitureLayout furnitureLayout;
-        if (deserializer.tryDeserialize(file, furnitureLayout)) {
-            std::cout << std::format("{}", furnitureLayout) << std::endl;
-            std::cout << "total size: " << furnitureLayout.size << std::endl;
-        } else {
-            std::cout << "Failed to deserialize file.";
+        for (const auto &file_name: files) {
+
+            const auto &file = File::ReadFile(std::filesystem::current_path() / file_name);
+
+            if (const auto &result = Deserializer::Deserialize<FurnitureLayout>(file)) {
+                std::cout << std::format("{}", result.value()) << std::endl;
+                std::cout << "total size: " << result.value().size << std::endl;
+            } else {
+                std::cout << "Failed to deserialize file.";
+            }
+
         }
     }
 
     TEST(DeserializationTest, Hbqj) {
         const auto &file = File::ReadFile(std::filesystem::current_path() / "housing");
-        IDeserializer<HousingLayout> deserializer{};
 
-        HousingLayout housing;
         // TODO: handle json with invalid format
-        if (deserializer.tryDeserialize(file, housing)) {
-            std::cout << std::format("{}", housing) << std::endl;
+        if (const auto &result = Deserializer::Deserialize<HousingLayout>(file)) {
+            std::cout << std::format("{}", result.value()) << std::endl;
         } else {
             std::cout << "Failed to deserialize file.";
         }

@@ -8,27 +8,31 @@
 using json = nlohmann::json;
 
 namespace hbqj {
-    class IDeserializerBase {
-    public:
-        virtual ~IDeserializerBase() = default;
-
-        virtual std::any tryDeserializeAny(const std::vector<uint8_t> &data) = 0;
+    struct DeserializationResult {
+        std::string type_name;
+        std::any data;
     };
 
-    template<typename T>
-    struct IDeserializer : public IDeserializerBase {
-        bool tryDeserialize(const nlohmann::json &j, T &output) { return false; };
-
-        bool tryDeserialize(const std::vector<uint8_t> &data, T &output) { return false; };
-
-        std::any tryDeserializeAny(const std::vector<uint8_t> &data) override {
-            T result;
-            if (tryDeserialize(data, result)) {
-                return std::any(result);
+    class Deserializer {
+    public:
+        template<typename T>
+        static std::optional<T> Deserialize(const std::vector<uint8_t> &data) {
+            if (data.empty()) {
+                return std::nullopt;
             }
-            return {};
-        }
 
-        ~IDeserializer() = default;
+            std::string json_str(data.begin(), data.end());
+
+            T result;
+            try {
+                auto j = nlohmann::json::parse(json_str);
+
+                from_json(j, result);
+
+                return result;
+            } catch (const std::exception &) {
+                return std::nullopt;
+            }
+        }
     };
 }

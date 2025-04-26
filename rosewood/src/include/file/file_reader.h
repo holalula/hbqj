@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <iostream>
+#include <typeindex>
 
 #include "file/struct/hbqj.h"
 #include "file/struct/legacy.h"
@@ -74,45 +75,25 @@ namespace hbqj {
 
         template<typename T>
         void RegisterDeserializer() {
-            deserializers_[typeid(T).name()] = std::make_unique<IDeserializer<T>>();
-        }
+            auto type_index = std::type_index(typeid(T));
 
-        template<typename T>
-        std::optional<T> ReadFile(const std::filesystem::path &path) {
-            std::vector<uint8_t> data = ReadBytesFromFile(path);
-            log.info("Read file: {}, length: {}", path.string(), data.size());
+            supported_types_.push_back(type_index);
 
-            if (auto result = TryDeserialize<T>(data)) {
-                return result;
-            }
-
-            log.info("Try to decrypt file..");
-
-            for (const auto &handler: decryption_handlers_) {
-                if (handler->isEncrypted(data)) {
-                    auto decrypted_data = handler->decrypt(data);
-                    log.info("Decrypted data length: {}", decrypted_data.size());
-                    if (!decrypted_data.empty()) {
-                        if (auto result = TryDeserialize<T>(decrypted_data)) {
-                            return result;
-                        }
-                    }
+            // type_index can't be converted to template parameter at runtime, thus we create lambda for each type
+            deserialize_funcs_[type_index] = [](const std::vector<uint8_t> &data) -> std::optional<std::any> {
+                if (auto result = Deserializer::Deserialize<T>(data)) {
+                    return std::any(result.value());
                 }
-            }
-
-            return std::nullopt;
+                return std::nullopt;
+            };
         }
 
-        struct DeserializationResult {
-            std::string type_name;
-            std::any data;
-        };
-
-        std::optional<DeserializationResult> ReadFileAutoDetect(const std::filesystem::path &path) {
+        std::optional<DeserializationResult> DeserializeFile(const std::filesystem::path &path) {
             std::vector<uint8_t> data = ReadBytesFromFile(path);
+
             log.info("Read file: {}, length: {}", path.string(), data.size());
 
-            if (auto result = TryDeserializeAll(data)) {
+            if (auto result = DeserializeJson(data)) {
                 return result;
             }
 
@@ -123,7 +104,7 @@ namespace hbqj {
                     auto decrypted_data = handler->decrypt(data);
                     log.info("Decrypted data length: {}", decrypted_data.size());
                     if (!decrypted_data.empty()) {
-                        if (auto result = TryDeserializeAll(decrypted_data)) {
+                        if (auto result = DeserializeJson(decrypted_data)) {
                             return result;
                         }
                     }
@@ -177,40 +158,39 @@ namespace hbqj {
                    | std::ranges::to<std::vector>();
         }
 
-        template<typename T>
-        std::optional<T> TryDeserialize(const std::vector<uint8_t> &data) {
+        std::optional<DeserializationResult> DeserializeJson(const std::vector<uint8_t> &data) {
             if (!IsJsonFile(data)) {
                 log.info("Not a valid json file.");
                 return std::nullopt;
             }
 
-            T result;
-            auto deserializer = dynamic_cast<IDeserializer<T> *>(deserializers_[typeid(T).name()].get());
-            if (deserializer && deserializer->tryDeserialize(data, result)) {
-                return result;
-            }
-
-            return std::nullopt;
-        }
-
-        std::optional<DeserializationResult> TryDeserializeAll(const std::vector<uint8_t> &data) {
-            if (!IsJsonFile(data)) {
-                log.info("Not a valid json file.");
-                return std::nullopt;
-            }
-
-            for (const auto &[type_name, deserializer]: deserializers_) {
-                auto result = deserializer->tryDeserializeAny(data);
-                if (result.has_value()) {
-                    return DeserializationResult{type_name, result};
+            for (const auto &type: supported_types_) {
+                auto deserializer = deserialize_funcs_.find(type);
+                if (deserializer == deserialize_funcs_.end()) {
+                    continue;
                 }
+
+                auto result = deserializer->second(data);
+                if (!result) {
+                    continue;
+                }
+
+                return DeserializationResult{
+                        .type_name = type.name(),
+                        .data = result.value(),
+                };
             }
 
             return std::nullopt;
         }
 
         std::vector<std::unique_ptr<IDecryptionHandler>> decryption_handlers_;
-        std::unordered_map<std::string, std::unique_ptr<IDeserializerBase>> deserializers_;
+
+        std::vector<std::type_index> supported_types_;
+
+        std::unordered_map<std::type_index, std::function<std::optional<std::any>(
+                const std::vector<uint8_t> &)>> deserialize_funcs_;
+
         Logger log = Logger::GetLogger("FileReader");
     };
 }
