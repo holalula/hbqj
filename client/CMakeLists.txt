@@ -21,6 +21,10 @@ set(SOURCE_FILES
         src/main.cpp
 )
 
+if (MSVC)
+    add_compile_options(/EHsc)
+endif ()
+
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -35,4 +39,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json::nlohmann_json
         OpenSSL::SSL
         OpenSSL::Crypto
+        rosewood
 )
