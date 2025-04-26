@@ -18,7 +18,12 @@ using json = nlohmann::json;
 namespace hbqj {
     class __declspec(dllexport) FileReader {
     public:
-        FileReader() = default;
+        FileReader() {
+            AddDecryptionHandler(std::make_unique<AesDecryptor>());
+
+            RegisterDeserializer<FurnitureLayout>();
+            RegisterDeserializer<HousingLayout>();
+        }
 
         // delete copy constructor
         FileReader(const FileReader &) = delete;

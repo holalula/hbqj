@@ -106,17 +106,13 @@ namespace hbqj {
     }
 
     TEST(FileReaderTest, GetHousingLayoutFromFile) {
-        const char *file_name = "encrypted";
+        // const char *file_name = "encrypted";
         // const char* file_name = "hbqj.json";
         // const char* file_name = "hbqj_w_color.json";
-        // const char *file_name = "housing";
+        const char *file_name = "housing";
         const auto &path = std::filesystem::current_path() / file_name;
 
         FileReader reader;
-        reader.AddDecryptionHandler(std::make_unique<AesDecryptor>());
-
-        reader.RegisterDeserializer<FurnitureLayout>();
-        reader.RegisterDeserializer<HousingLayout>();
 
         auto result = reader.ReadFileAutoDetect(path);
 
