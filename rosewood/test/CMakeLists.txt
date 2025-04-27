@@ -27,6 +27,7 @@ add_executable(rosewood_tests
         file/deserialization/deserialization_test.cpp
         file/file_reader_test.cpp
         layout_loader_test.cpp
+        ipc_test.cpp
 )
 
 # add_dependencies(rosewood_tests namazu)
