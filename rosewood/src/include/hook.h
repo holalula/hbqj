@@ -5,7 +5,7 @@
 
 #include "error.h"
 #include "log.h"
-#include "process.h"
+#include "game_process.h"
 #include "macro.h"
 
 namespace hbqj {

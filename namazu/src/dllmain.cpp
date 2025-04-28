@@ -11,7 +11,7 @@
 #include "load_housing.h"
 #include "logger.h"
 #include "d3d_manager.h"
-#include "process.h"
+#include "game_process.h"
 #include "signature_manager.h"
 
 namespace hbqj {

@@ -3,7 +3,7 @@
 #include <optional>
 #include <nlohmann/json.hpp>
 
-#include "process.h"
+#include "game_process.h"
 
 using json = nlohmann::json;
 

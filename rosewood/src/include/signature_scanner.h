@@ -11,7 +11,7 @@
 #include <TlHelp32.h>
 
 #include "error.h"
-#include "process.h"
+#include "game_process.h"
 #include "log.h"
 
 namespace hbqj {

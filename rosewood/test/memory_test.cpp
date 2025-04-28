@@ -47,7 +47,7 @@ namespace hbqj {
         if (result.has_value()) {
             for (const auto &item: result.value()) {
                 process->log.info("{}", item);
-                process->log.info("y->q = {}", RadianToQuaternion(item.rotation));
+                process->log.info("y->q = {}", Memory::RadianToQuaternion(item.rotation));
             }
         } else {
             process->log.error("{}", result.error());
@@ -56,7 +56,7 @@ namespace hbqj {
         auto rotation = memory.GetActiveRotation();
         if (rotation) {
             process->log.info("q = {}", *rotation);
-            process->log.info("q->y = {}", QuaternionToRadian(rotation.value()));
+            process->log.info("q->y = {}", Memory::QuaternionToRadian(rotation.value()));
         }
     }
 
