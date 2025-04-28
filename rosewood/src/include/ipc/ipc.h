@@ -11,7 +11,7 @@ namespace hbqj {
 
     // event callback function
     void OnEvent(SharedMemory *sm) {
-        sm->data2 = 420;
+        sm->data2 = 114514;
     }
 
     class __declspec(dllexport) Ipc {
@@ -28,7 +28,7 @@ namespace hbqj {
 
             sm->data1 = 1;
             sm->data2 = 0;
-            SetEvent(sm->event1);
+            SetEvent(resources.GetEvent1());
 
             auto poller = std::make_unique<Poller>(
                     "Local\\HBQJSM",
@@ -42,7 +42,7 @@ namespace hbqj {
                 std::cout << "Failed to Start Poller Thread.." << std::endl;
             }
 
-            auto wait_result = WaitForSingleObject(sm->event2, 5000);
+            auto wait_result = WaitForSingleObject(resources.GetEvent2(), 5000);
 
             if (wait_result != WAIT_OBJECT_0) {
                 std::cout << "Timeout after 5s." << std::endl;

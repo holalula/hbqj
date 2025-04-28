@@ -10,6 +10,8 @@ namespace hbqj {
         HANDLE map_file_ = nullptr;
         SharedMemory *shared_memory_ = nullptr;
         bool is_valid_ = false;
+        HANDLE event1_ = nullptr;
+        HANDLE event2_ = nullptr;
 
     public:
         explicit SharedMemoryReader(const char *mapping_name) {
@@ -39,21 +41,36 @@ namespace hbqj {
                 return;
             }
 
-            if (shared_memory_->event1 == nullptr || shared_memory_->event1 == INVALID_HANDLE_VALUE) {
+            event1_ = OpenEvent(
+                    EVENT_ALL_ACCESS,
+                    FALSE,
+                    shared_memory_->event1_name
+            );
+
+            if (event1_ == nullptr || event1_ == INVALID_HANDLE_VALUE) {
                 std::cerr << "Invalid event1" << std::endl;
                 UnmapViewOfFile(shared_memory_);
                 CloseHandle(map_file_);
                 shared_memory_ = nullptr;
                 map_file_ = nullptr;
+                event1_ = nullptr;
                 return;
             }
 
-            if (shared_memory_->event2 == nullptr || shared_memory_->event2 == INVALID_HANDLE_VALUE) {
+            event2_ = OpenEvent(
+                    EVENT_ALL_ACCESS,
+                    FALSE,
+                    shared_memory_->event2_name
+            );
+
+            if (event2_ == nullptr || event2_ == INVALID_HANDLE_VALUE) {
                 std::cerr << "Invalid event2" << std::endl;
                 UnmapViewOfFile(shared_memory_);
                 CloseHandle(map_file_);
                 shared_memory_ = nullptr;
                 map_file_ = nullptr;
+                event1_ = nullptr;
+                event2_ = nullptr;
                 return;
             }
 
@@ -100,6 +117,10 @@ namespace hbqj {
             return shared_memory_;
         }
 
+        HANDLE GetEvent1() const { return event1_; }
+
+        HANDLE GetEvent2() const { return event2_; }
+
     private:
         void Cleanup() {
             if (shared_memory_) {
@@ -110,6 +131,16 @@ namespace hbqj {
             if (map_file_) {
                 CloseHandle(map_file_);
                 map_file_ = nullptr;
+            }
+
+            if (event1_) {
+                CloseHandle(event1_);
+                event1_ = nullptr;
+            }
+
+            if (event2_) {
+                CloseHandle(event2_);
+                event2_ = nullptr;
             }
 
             is_valid_ = false;

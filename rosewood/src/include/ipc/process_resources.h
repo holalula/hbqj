@@ -9,9 +9,9 @@ namespace hbqj {
 #pragma pack(push, 1)
     struct SharedMemory {
         int data1;
-        HANDLE event1;
+        char event1_name[64];
         int data2;
-        HANDLE event2;
+        char event2_name[64];
     };
 #pragma pack(pop)
 
@@ -37,9 +37,19 @@ namespace hbqj {
         bool IsValid() const {
             return shared_memory_ != nullptr &&
                    map_file_ != nullptr &&
-                   shared_memory_->event1 != nullptr &&
-                   shared_memory_->event2 != nullptr;
+                   event1_ != nullptr &&
+                   event2_ != nullptr;
         }
+
+        HANDLE GetEvent1() const { return event1_; };
+
+        HANDLE GetEvent2() const { return event2_; };
+
+        static std::string GetEventName(int index) {
+            return std::format("Local\\HBQJ_Event_{}", index);
+        }
+
+        static constexpr const char *FILE_MAPPING_NAME = "Local\\HBQJSM";
 
     private:
         ProcessResources() {
@@ -54,6 +64,8 @@ namespace hbqj {
         HANDLE map_file_ = nullptr;
         SharedMemory *shared_memory_ = nullptr;
         PSECURITY_DESCRIPTOR security_descriptor_ = nullptr;
+        HANDLE event1_ = nullptr;
+        HANDLE event2_ = nullptr;
 
         static SECURITY_ATTRIBUTES CreateEveryoneAccessSecurity() {
             SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES)};
@@ -75,7 +87,7 @@ namespace hbqj {
                     PAGE_READWRITE,
                     0,
                     sizeof(SharedMemory),
-                    "Local\\HBQJSM");
+                    FILE_MAPPING_NAME);
 
             if (!map_file_) {
                 std::cerr << "Failed to create file mapping: " << GetLastError() << std::endl;
@@ -102,45 +114,38 @@ namespace hbqj {
 
             ZeroMemory(shared_memory_, sizeof(SharedMemory));
 
-            shared_memory_->event1 = CreateEvent(
+            event1_ = CreateEvent(
                     &sa,
                     FALSE,
                     FALSE,
-                    "Global\\HBQJ_Event1");
+                    GetEventName(1).c_str());
 
-            if (!shared_memory_->event1) {
+            if (!event1_) {
                 std::cerr << "Failed to create event1: " << GetLastError() << std::endl;
                 cleanup();
                 return;
             }
 
-            shared_memory_->event2 = CreateEvent(
+            event2_ = CreateEvent(
                     &sa,
                     FALSE,
                     FALSE,
-                    "Global\\HBQJ_Event2");
+                    GetEventName(2).c_str());
 
-            if (!shared_memory_->event2) {
+            if (!event2_) {
                 std::cerr << "Failed to create event2: " << GetLastError() << std::endl;
                 cleanup();
                 return;
             }
+
+            strcpy_s(shared_memory_->event1_name, GetEventName(1).c_str());
+            strcpy_s(shared_memory_->event2_name, GetEventName(2).c_str());
 
             std::cout << "Process resources initialized successfully" << std::endl;
         }
 
         void cleanup() {
             if (shared_memory_) {
-                if (shared_memory_->event1) {
-                    CloseHandle(shared_memory_->event1);
-                    shared_memory_->event1 = nullptr;
-                }
-
-                if (shared_memory_->event2) {
-                    CloseHandle(shared_memory_->event2);
-                    shared_memory_->event2 = nullptr;
-                }
-
                 UnmapViewOfFile(shared_memory_);
                 shared_memory_ = nullptr;
             }
@@ -153,6 +158,16 @@ namespace hbqj {
             if (security_descriptor_) {
                 LocalFree(security_descriptor_);
                 security_descriptor_ = nullptr;
+            }
+
+            if (event1_) {
+                CloseHandle(event1_);
+                event1_ = nullptr;
+            }
+
+            if (event2_) {
+                CloseHandle(event2_);
+                event2_ = nullptr;
             }
 
             std::cout << "Process resources cleaned up" << std::endl;

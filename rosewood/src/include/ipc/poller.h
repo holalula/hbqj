@@ -66,15 +66,19 @@ namespace hbqj {
         void PollThread() {
             auto *sm = reader_->GetSharedMemory();
 
+            auto event1 = reader_->GetEvent1();
+
+            auto event2 = reader_->GetEvent2();
+
             while (!should_stop_) {
-                DWORD waitResult = WaitForSingleObject(sm->event1, 500);
+                DWORD waitResult = WaitForSingleObject(event1, 500);
 
                 if (waitResult == WAIT_OBJECT_0) {
                     if (event_callback_) {
                         event_callback_(sm);
                     }
 
-                    SetEvent(sm->event2);
+                    SetEvent(event2);
                 }
 
                 std::this_thread::sleep_for(poll_interval_);
