@@ -52,6 +52,31 @@ namespace hbqj {
         }
     }
 
+    TEST(IpcTest, IpcAfterInjection) {
+        auto &resources = ProcessResources::GetInstance();
+
+        if (!resources.IsValid()) {
+            std::cerr << "Process resources are not valid" << std::endl;
+            return;
+        }
+
+        auto *sm = resources.GetSharedMemory();
+
+        sm->data1 = 10000;
+        sm->data2 = 0;
+        SetEvent(resources.GetEvent1());
+
+        // Wait for event from poller
+        auto wait_result = WaitForSingleObject(resources.GetEvent2(), 50000);
+
+        if (wait_result != WAIT_OBJECT_0) {
+            std::cout << "Timeout after 5s." << std::endl;
+        } else {
+            std::cout << "Get data in writer thread:" << std::endl;
+            std::cout << sm->data2 << std::endl;
+        }
+    }
+
     TEST(IpcTest, Unload) {
         auto &resources = ProcessResources::GetInstance();
 
