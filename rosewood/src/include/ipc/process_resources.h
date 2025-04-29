@@ -1,8 +1,9 @@
 #pragma once
 
 #include <iostream>
-#include <Windows.h>
+#include <windows.h>
 #include <synchapi.h>
+#include <sddl.h>
 
 namespace hbqj {
 
@@ -41,6 +42,7 @@ namespace hbqj {
         char event1_name[64];
         int data2;
         char event2_name[64];
+        char exit_event_name[64];
     };
 #pragma pack(pop)
 
@@ -74,6 +76,8 @@ namespace hbqj {
 
         HANDLE GetEvent2() const { return event2_.get(); };
 
+        HANDLE GetExitEvent() const { return exit_event_.get(); }
+
         static std::string GetEventName(int index) {
             return std::format("Local\\HBQJ_Event_{}", index);
         }
@@ -93,6 +97,7 @@ namespace hbqj {
         SecurityDescriptorGuard security_descriptor_{nullptr, &SafeLocalFree};
         HandleGuard event1_{nullptr, &SafeCloseHandle};
         HandleGuard event2_{nullptr, &SafeCloseHandle};
+        HandleGuard exit_event_{nullptr, &SafeCloseHandle};
 
         static SECURITY_ATTRIBUTES CreateEveryoneAccessSecurity() {
             SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES)};
@@ -108,7 +113,7 @@ namespace hbqj {
             SECURITY_ATTRIBUTES sa = CreateEveryoneAccessSecurity();
             security_descriptor_.reset(sa.lpSecurityDescriptor);
 
-            map_file_.reset(CreateFileMapping(
+            map_file_.reset(CreateFileMappingA(
                     INVALID_HANDLE_VALUE,
                     &sa,
                     PAGE_READWRITE,
@@ -135,7 +140,7 @@ namespace hbqj {
 
             ZeroMemory(shared_memory_.get(), sizeof(SharedMemory));
 
-            event1_.reset(CreateEvent(
+            event1_.reset(CreateEventA(
                     &sa,
                     FALSE,
                     FALSE,
@@ -146,7 +151,7 @@ namespace hbqj {
                 return;
             }
 
-            event2_.reset(CreateEvent(
+            event2_.reset(CreateEventA(
                     &sa,
                     FALSE,
                     FALSE,
@@ -157,8 +162,16 @@ namespace hbqj {
                 return;
             }
 
+            exit_event_.reset(CreateEventA(
+                    &sa,
+                    FALSE,
+                    FALSE,
+                    GetEventName(3).c_str()
+            ));
+
             strcpy_s(GetSharedMemory()->event1_name, GetEventName(1).c_str());
             strcpy_s(GetSharedMemory()->event2_name, GetEventName(2).c_str());
+            strcpy_s(GetSharedMemory()->exit_event_name, GetEventName(3).c_str());
 
             std::cout << "Process resources initialized successfully" << std::endl;
         }

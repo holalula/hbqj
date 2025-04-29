@@ -7,8 +7,6 @@ namespace hbqj {
     static const char *dll_name = "namazu.dll";
 
     TEST(HookTest, ListAllModules) {
-        GTEST_SKIP();
-
         Hook hook;
 
         const auto &ms = hook.GetLoadedModules("ffxiv_dx11.exe");

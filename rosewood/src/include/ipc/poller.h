@@ -20,6 +20,13 @@ namespace hbqj {
         std::chrono::milliseconds poll_interval_;
 
     public:
+        explicit Poller(std::function<void(SharedMemory *)> callback) : event_callback_(std::move(callback)),
+                                                                        poll_interval_(std::chrono::milliseconds(20)) {
+
+            reader_ = std::make_unique<SharedMemoryReader>(ProcessResources::FILE_MAPPING_NAME);
+
+        }
+
         Poller(const char *mapping_name,
                std::function<void(SharedMemory *)> callback,
                std::chrono::milliseconds interval = std::chrono::milliseconds(1000))
@@ -52,7 +59,10 @@ namespace hbqj {
         }
 
         void Stop() {
+            // if (should_stop_) return;
+
             should_stop_ = true;
+
             if (polling_thread_.joinable()) {
                 polling_thread_.join();
             }
@@ -71,7 +81,15 @@ namespace hbqj {
             auto event2 = reader_->GetEvent2();
 
             while (!should_stop_) {
-                DWORD waitResult = WaitForSingleObject(event1, 500);
+                // Stop() can't be called in DLL_PROCESS_DETACH, since even if the RC is decremented by FreeLibrary,
+                // the DLL_PROCESS_DETACH won't be triggered as long as the created thread doesn't exit.
+                // This causes a circular dependency, so use a separate event to exit this thread.
+                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->GetExitEvent(), 1)) {
+                    should_stop_ = true;
+                    return;
+                }
+
+                DWORD waitResult = WaitForSingleObject(event1, 1);
 
                 if (waitResult == WAIT_OBJECT_0) {
                     if (event_callback_) {

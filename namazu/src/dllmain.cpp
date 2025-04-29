@@ -13,8 +13,15 @@
 #include "d3d_manager.h"
 #include "game_process.h"
 #include "signature_manager.h"
+#include "ipc/poller.h"
 
 namespace hbqj {
+    std::unique_ptr<Poller> poller;
+
+    void OnHbqjEvent(SharedMemory *sm) {
+        sm->data2 = sm->data1 + 300;
+    }
+
     DWORD WINAPI InitializeBgpop(LPVOID) {
         log("Initialize COM for this thread");
         HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -59,23 +66,31 @@ namespace hbqj {
 
         PreviewHousing::load_housing_func_offset = 0xC4A390;
         PreviewHousing::load_housing_func = reinterpret_cast<LoadHousingFunc>
-                (process->GetBaseAddr() + PreviewHousing::load_housing_func_offset);
+        (process->GetBaseAddr() + PreviewHousing::load_housing_func_offset);
         Mhook_SetHook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func),
                       reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
 
         LoadHousing::select_item_func_offset = 0x6D1520;
         LoadHousing::select_item_func = reinterpret_cast<SelectItemFunc>
-                (process->GetBaseAddr() + LoadHousing::select_item_func_offset);
+        (process->GetBaseAddr() + LoadHousing::select_item_func_offset);
         Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::select_item_func),
                       reinterpret_cast<PVOID>(LoadHousing::SelectItemFuncHook));
 
         LoadHousing::place_item_func_offset = 0x6D1E80;
         LoadHousing::place_item_func = reinterpret_cast<PlaceItemFunc>
-                (process->GetBaseAddr() + LoadHousing::place_item_func_offset);
+        (process->GetBaseAddr() + LoadHousing::place_item_func_offset);
         Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::place_item_func),
                       reinterpret_cast<PVOID>(LoadHousing::PlaceItemFuncHook));
 
         memory.Initialize(process);
+
+        poller = std::move(std::make_unique<Poller>(OnHbqjEvent));
+
+        if (poller->Start()) {
+            log("Start Poller Thread..");
+        } else {
+            log("Failed to Start Poller Thread..");
+        }
 
         return 0;
     }
@@ -109,6 +124,13 @@ BOOL APIENTRY DllMain(HMODULE hModule,
                 if (hbqj::state::g_initialized) {
                     hbqj::CleanupImGui();
                 }
+            }
+
+            if (hbqj::poller) {
+                hbqj::log("Start stopping Poller..");
+                hbqj::poller->Stop();
+                hbqj::poller.reset();
+                hbqj::log("Poller Thread Exists..");
             }
 
             break;

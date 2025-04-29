@@ -12,10 +12,11 @@ namespace hbqj {
         bool is_valid_ = false;
         HandleGuard event1_{nullptr, &SafeCloseHandle};
         HandleGuard event2_{nullptr, &SafeCloseHandle};
+        HandleGuard exit_event_{nullptr, &SafeCloseHandle};
 
     public:
         explicit SharedMemoryReader(const char *mapping_name) {
-            map_file_.reset(OpenFileMapping(
+            map_file_.reset(OpenFileMappingA(
                     FILE_MAP_ALL_ACCESS,
                     FALSE,
                     mapping_name
@@ -39,7 +40,7 @@ namespace hbqj {
                 return;
             }
 
-            event1_.reset(OpenEvent(
+            event1_.reset(OpenEventA(
                     EVENT_ALL_ACCESS,
                     FALSE,
                     GetSharedMemory()->event1_name
@@ -50,7 +51,7 @@ namespace hbqj {
                 return;
             }
 
-            event2_.reset(OpenEvent(
+            event2_.reset(OpenEventA(
                     EVENT_ALL_ACCESS,
                     FALSE,
                     GetSharedMemory()->event2_name
@@ -60,6 +61,12 @@ namespace hbqj {
                 std::cerr << "Invalid event2" << std::endl;
                 return;
             }
+
+            exit_event_.reset(OpenEventA(
+                    EVENT_ALL_ACCESS,
+                    FALSE,
+                    GetSharedMemory()->exit_event_name
+            ));
 
             is_valid_ = true;
         }
@@ -107,6 +114,8 @@ namespace hbqj {
         HANDLE GetEvent1() const { return event1_.get(); }
 
         HANDLE GetEvent2() const { return event2_.get(); }
+
+        HANDLE GetExitEvent() const { return exit_event_.get(); }
 
     private:
         void Cleanup() {
