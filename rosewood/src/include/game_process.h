@@ -83,9 +83,13 @@ namespace hbqj {
 		std::expected<HANDLE, Error> GetProcess(std::string_view process_name);
 
 		ProcessModule target_module_;
+
 		HANDLE target_process_;
+
 		SIZE_T target_process_id_;
-		Logger log = Logger::GetLogger("Process");
+
+		inline static Logger log = Logger::GetLogger("Process");
+
 	private:
 		std::expected<ProcessModule, Error> GetModule(std::string_view module_name);
 
