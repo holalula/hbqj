@@ -6,6 +6,35 @@
 
 namespace hbqj {
 
+    static void SafeCloseHandle(HANDLE handle) {
+        // https://stackoverflow.com/questions/47575594/is-it-safe-to-call-closehandle-handle-who-handle-is-null
+        if (handle && handle != INVALID_HANDLE_VALUE) {
+            CloseHandle(handle);
+        }
+    }
+
+    static bool IsValidHandle(HANDLE handle) {
+        return handle && handle != INVALID_HANDLE_VALUE;
+    }
+
+    static void SafeLocalFree(PSECURITY_DESCRIPTOR sd) {
+        if (sd) {
+            LocalFree(sd);
+        }
+    }
+
+    static void SafeUnmapViewOfFile(void *p) {
+        if (p) {
+            UnmapViewOfFile(p);
+        }
+    }
+
+    using HandleGuard = std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&SafeCloseHandle)>;
+
+    using SecurityDescriptorGuard = std::unique_ptr<std::remove_pointer_t<PSECURITY_DESCRIPTOR>, decltype(&SafeLocalFree)>;
+
+    using MapViewGuard = std::unique_ptr<void, decltype(&SafeUnmapViewOfFile)>;
+
 #pragma pack(push, 1)
     struct SharedMemory {
         int data1;
@@ -31,19 +60,19 @@ namespace hbqj {
         }
 
         SharedMemory *GetSharedMemory() const {
-            return shared_memory_;
+            return reinterpret_cast<SharedMemory *>(shared_memory_.get());
         }
 
         bool IsValid() const {
-            return shared_memory_ != nullptr &&
-                   map_file_ != nullptr &&
-                   event1_ != nullptr &&
-                   event2_ != nullptr;
+            return shared_memory_.get() != nullptr &&
+                   map_file_.get() != nullptr &&
+                   event1_.get() != nullptr &&
+                   event2_.get() != nullptr;
         }
 
-        HANDLE GetEvent1() const { return event1_; };
+        HANDLE GetEvent1() const { return event1_.get(); };
 
-        HANDLE GetEvent2() const { return event2_; };
+        HANDLE GetEvent2() const { return event2_.get(); };
 
         static std::string GetEventName(int index) {
             return std::format("Local\\HBQJ_Event_{}", index);
@@ -57,15 +86,13 @@ namespace hbqj {
         }
 
 
-        ~ProcessResources() {
-            cleanup();
-        }
+        ~ProcessResources() = default;
 
-        HANDLE map_file_ = nullptr;
-        SharedMemory *shared_memory_ = nullptr;
-        PSECURITY_DESCRIPTOR security_descriptor_ = nullptr;
-        HANDLE event1_ = nullptr;
-        HANDLE event2_ = nullptr;
+        HandleGuard map_file_{nullptr, &SafeCloseHandle};
+        MapViewGuard shared_memory_{nullptr, &SafeUnmapViewOfFile};
+        SecurityDescriptorGuard security_descriptor_{nullptr, &SafeLocalFree};
+        HandleGuard event1_{nullptr, &SafeCloseHandle};
+        HandleGuard event2_{nullptr, &SafeCloseHandle};
 
         static SECURITY_ATTRIBUTES CreateEveryoneAccessSecurity() {
             SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES)};
@@ -79,98 +106,61 @@ namespace hbqj {
 
         void Initialize() {
             SECURITY_ATTRIBUTES sa = CreateEveryoneAccessSecurity();
-            security_descriptor_ = sa.lpSecurityDescriptor;
+            security_descriptor_.reset(sa.lpSecurityDescriptor);
 
-            map_file_ = CreateFileMapping(
+            map_file_.reset(CreateFileMapping(
                     INVALID_HANDLE_VALUE,
                     &sa,
                     PAGE_READWRITE,
                     0,
                     sizeof(SharedMemory),
-                    FILE_MAPPING_NAME);
+                    FILE_MAPPING_NAME));
 
-            if (!map_file_) {
+            if (!IsValidHandle(map_file_.get())) {
                 std::cerr << "Failed to create file mapping: " << GetLastError() << std::endl;
-                LocalFree(security_descriptor_);
-                security_descriptor_ = nullptr;
                 return;
             }
 
-            shared_memory_ = reinterpret_cast<SharedMemory *>(MapViewOfFile(
-                    map_file_,
+            shared_memory_.reset(MapViewOfFile(
+                    map_file_.get(),
                     FILE_MAP_ALL_ACCESS,
                     0,
                     0,
                     0));
 
-            if (!shared_memory_) {
+            if (!shared_memory_.get()) {
                 std::cerr << "Failed to map view of file: " << GetLastError() << std::endl;
-                CloseHandle(map_file_);
-                map_file_ = nullptr;
-                LocalFree(security_descriptor_);
-                security_descriptor_ = nullptr;
                 return;
             }
 
-            ZeroMemory(shared_memory_, sizeof(SharedMemory));
+            ZeroMemory(shared_memory_.get(), sizeof(SharedMemory));
 
-            event1_ = CreateEvent(
+            event1_.reset(CreateEvent(
                     &sa,
                     FALSE,
                     FALSE,
-                    GetEventName(1).c_str());
+                    GetEventName(1).c_str()));
 
-            if (!event1_) {
+            if (!IsValidHandle(event1_.get())) {
                 std::cerr << "Failed to create event1: " << GetLastError() << std::endl;
-                cleanup();
                 return;
             }
 
-            event2_ = CreateEvent(
+            event2_.reset(CreateEvent(
                     &sa,
                     FALSE,
                     FALSE,
-                    GetEventName(2).c_str());
+                    GetEventName(2).c_str()));
 
-            if (!event2_) {
+            if (!IsValidHandle(event2_.get())) {
                 std::cerr << "Failed to create event2: " << GetLastError() << std::endl;
-                cleanup();
                 return;
             }
 
-            strcpy_s(shared_memory_->event1_name, GetEventName(1).c_str());
-            strcpy_s(shared_memory_->event2_name, GetEventName(2).c_str());
+            strcpy_s(GetSharedMemory()->event1_name, GetEventName(1).c_str());
+            strcpy_s(GetSharedMemory()->event2_name, GetEventName(2).c_str());
 
             std::cout << "Process resources initialized successfully" << std::endl;
-        }
-
-        void cleanup() {
-            if (shared_memory_) {
-                UnmapViewOfFile(shared_memory_);
-                shared_memory_ = nullptr;
-            }
-
-            if (map_file_) {
-                CloseHandle(map_file_);
-                map_file_ = nullptr;
-            }
-
-            if (security_descriptor_) {
-                LocalFree(security_descriptor_);
-                security_descriptor_ = nullptr;
-            }
-
-            if (event1_) {
-                CloseHandle(event1_);
-                event1_ = nullptr;
-            }
-
-            if (event2_) {
-                CloseHandle(event2_);
-                event2_ = nullptr;
-            }
-
-            std::cout << "Process resources cleaned up" << std::endl;
         }
     };
 }
