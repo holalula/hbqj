@@ -10,91 +10,99 @@
 #include "log.h"
 
 namespace hbqj {
-	typedef uint64_t Address;
-	typedef uint8_t Byte;
+    typedef uint64_t Address;
+    typedef uint8_t Byte;
 
 #pragma pack(push, 1)
-	struct CallInstruction {
-		Byte opcode;
-		int32_t offset;
-	};
+    struct CallInstruction {
+        Byte opcode;
+        int32_t offset;
+    };
 
-	struct MovInstruction {
-		Byte rex;
-		Byte opcode[2];
-		uint32_t offset;
-	};
+    struct MovInstruction {
+        Byte rex;
+        Byte opcode[2];
+        uint32_t offset;
+    };
 #pragma pack(pop)
 
-	struct ProcessModule {
-		Address base, size;
+    struct ProcessModule {
+        Address base, size;
         WCHAR path[MAX_PATH];
-	};
+    };
 
-	class __declspec(dllexport) Process {
-	public:
-		Process() {
-			GetProcessModule("ffxiv_dx11.exe", "ffxiv_dx11.exe");
-		}
+    class __declspec(dllexport) Process {
+    public:
+        Process() {
+            GetProcessModule("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+        }
 
-		Process(std::string_view process_name, std::string_view module_name) {
-			GetProcessModule(process_name, module_name);
-		}
+        Process(std::string_view process_name, std::string_view module_name) {
+            GetProcessModule(process_name, module_name);
+        }
 
-		std::expected<ProcessModule, Error> GetProcessModule(std::string_view process_name, std::string_view module_name);
+        Process(bool initialize) {
+            if (initialize) {
+                Process();
+            }
+        }
 
-		template <typename T>
-		std::expected<bool, Error> WriteMemory(Address addr, const T& value) {
-			if (!WriteProcessMemory(target_process_, reinterpret_cast<LPVOID>(addr), &value, sizeof(T), nullptr)) {
-				return std::unexpected(WinAPIError{ .error = GetLastError() });
-			}
-			return true;
-		}
+        std::expected<ProcessModule, Error>
+        GetProcessModule(std::string_view process_name, std::string_view module_name);
 
-		std::expected<size_t, Error> WriteMemory(Address addr, const wchar_t* str) {
-			size_t len = wcslen(str) + 1;
-			if (!WriteProcessMemory(target_process_, reinterpret_cast<LPVOID>(addr), str, len * sizeof(wchar_t), nullptr)) {
-				return std::unexpected(WinAPIError{ .error = GetLastError() });
-			}
-			return len * sizeof(wchar_t);
-		}
+        template<typename T>
+        std::expected<bool, Error> WriteMemory(Address addr, const T &value) {
+            if (!WriteProcessMemory(target_process_, reinterpret_cast<LPVOID>(addr), &value, sizeof(T), nullptr)) {
+                return std::unexpected(WinAPIError{.error = GetLastError()});
+            }
+            return true;
+        }
 
-		template <typename T>
-		std::expected<T, Error> ReadMemory(Address addr) {
-			T value{};
-			if (!ReadProcessMemory(target_process_, reinterpret_cast<LPCVOID>(addr), &value, sizeof(T), nullptr)) {
-				return std::unexpected(WinAPIError{ .error = GetLastError() });
-			}
-			return value;
-		}
+        std::expected<size_t, Error> WriteMemory(Address addr, const wchar_t *str) {
+            size_t len = wcslen(str) + 1;
+            if (!WriteProcessMemory(target_process_, reinterpret_cast<LPVOID>(addr), str, len * sizeof(wchar_t),
+                                    nullptr)) {
+                return std::unexpected(WinAPIError{.error = GetLastError()});
+            }
+            return len * sizeof(wchar_t);
+        }
 
-		constexpr Address GetBaseAddr() const {
-			return target_module_.base;
-		}
+        template<typename T>
+        std::expected<T, Error> ReadMemory(Address addr) {
+            T value{};
+            if (!ReadProcessMemory(target_process_, reinterpret_cast<LPCVOID>(addr), &value, sizeof(T), nullptr)) {
+                return std::unexpected(WinAPIError{.error = GetLastError()});
+            }
+            return value;
+        }
 
-		constexpr Address GetOffsetAddr(const Address addr) const {
-			return addr - target_module_.base;
-		}
+        constexpr Address GetBaseAddr() const {
+            return target_module_.base;
+        }
 
-		std::expected<Address, Error> CalculateTargetOffsetCall(Address offset);
+        constexpr Address GetOffsetAddr(const Address addr) const {
+            return addr - target_module_.base;
+        }
 
-		std::expected<Address, Error> CalculateTargetOffsetMov(Address offset);
+        std::expected<Address, Error> CalculateTargetOffsetCall(Address offset);
 
-		std::expected<HANDLE, Error> GetProcess(std::string_view process_name);
+        std::expected<Address, Error> CalculateTargetOffsetMov(Address offset);
 
-		ProcessModule target_module_;
+        std::expected<HANDLE, Error> GetProcess(std::string_view process_name);
 
-		HANDLE target_process_;
+        ProcessModule target_module_;
 
-		SIZE_T target_process_id_;
+        HANDLE target_process_;
 
-		inline static Logger log = Logger::GetLogger("Process");
+        SIZE_T target_process_id_;
 
-	private:
-		std::expected<ProcessModule, Error> GetModule(std::string_view module_name);
+        inline static Logger log = Logger::GetLogger("Process");
 
-		inline uint32_t ConvertOffset(const uint32_t* bytes) {
-			return *reinterpret_cast<const uint32_t*>(bytes);
-		}
-	};
+    private:
+        std::expected<ProcessModule, Error> GetModule(std::string_view module_name);
+
+        inline uint32_t ConvertOffset(const uint32_t *bytes) {
+            return *reinterpret_cast<const uint32_t *>(bytes);
+        }
+    };
 }
