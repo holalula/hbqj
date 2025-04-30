@@ -101,21 +101,13 @@ namespace hbqj {
                     is_game_process_running_ = true;
                     if (!game_process_.GetProcessModule(process_name_, module_name_).has_value()) {
                         is_dll_injected_ = false;
-                        log.info("Inject dll to game...");
-                        // One interesting issue here is that even if the below code line shouldn't be executed (since
-                        // game is not launched), the client exits with error:
-                        // > Process finished with exit code -1073741515 (0xC0000135)
-                        // 0xC0000135 is STATUS_DLL_NOT_FOUND
-                        // But if we replace it with a return statement, this thread won't exit.
-                        // It seems this is caused by compiler optimizations, but even all MSVC optimizations are disabled
-                        // (use /Od flag), this issue still doesn't go away.
-                        // return;
-                        auto result = injector_.Inject(dll_path_.wstring(), process_name_);
+                        auto result = injector_.SafeInject(dll_path_, process_name_);
                         if (result.has_value()) {
                             log.info("Injected {} to {}.", dll_path_.string(), process_name_);
                         } else {
-                            log.error("Failed to inject to game process..");
+                            log.error("Failed to inject to game process, error: {}", result.error());
                         }
+
                     } else {
                         is_dll_injected_ = true;
                     }

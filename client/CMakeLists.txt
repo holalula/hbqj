@@ -13,6 +13,7 @@ set(__ImGui
 set(__ROSEWOOD
         "${CMAKE_SOURCE_DIR}/rosewood/src/process.cpp"
         "${CMAKE_SOURCE_DIR}/rosewood/src/file/decryption/aes_decryptor.cpp"
+        "${CMAKE_SOURCE_DIR}/rosewood/src/hook.cpp"
 )
 
 set(SOURCE_FILES
@@ -26,6 +27,11 @@ if (MSVC)
 endif ()
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        UNICODE
+        _UNICODE
+)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"
