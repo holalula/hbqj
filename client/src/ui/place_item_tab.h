@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui.h"
+#include "ipc/heart_beat.h"
 
 namespace hbqj {
     static bool place_anywhere = false;
@@ -17,6 +18,10 @@ namespace hbqj {
 
         if (ImGui::Checkbox("PlaceAnywhere", &place_anywhere)) {
             log("Place anywhere: {}", place_anywhere);
+            const auto &memory = HeartBeatMonitor::GetInstance().GetMemoryOperation();
+            if (memory->initialized) {
+                memory->PlaceAnywhere(place_anywhere);
+            }
         }
 
         if (ImGui::Checkbox("ImGuizmo", &imguizmo)) {

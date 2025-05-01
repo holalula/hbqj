@@ -14,6 +14,9 @@ set(__ROSEWOOD
         "${CMAKE_SOURCE_DIR}/rosewood/src/process.cpp"
         "${CMAKE_SOURCE_DIR}/rosewood/src/file/decryption/aes_decryptor.cpp"
         "${CMAKE_SOURCE_DIR}/rosewood/src/hook.cpp"
+        "${CMAKE_SOURCE_DIR}/rosewood/src/signature_manager.cpp"
+        "${CMAKE_SOURCE_DIR}/rosewood/src/signature_scanner.cpp"
+        "${CMAKE_SOURCE_DIR}/rosewood/src/memory_operation.cpp"
 )
 
 set(SOURCE_FILES
@@ -45,7 +48,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         nlohmann_json::nlohmann_json
         OpenSSL::SSL
         OpenSSL::Crypto
-        rosewood
 )
 
 add_dependencies(client namazu)

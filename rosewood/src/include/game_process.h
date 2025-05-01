@@ -50,6 +50,8 @@ namespace hbqj {
         std::expected<ProcessModule, Error>
         GetProcessModule(std::string_view process_name, std::string_view module_name);
 
+        std::expected<bool, Error> HasModule(std::string_view process_name, std::string_view module_name);
+
         template<typename T>
         std::expected<bool, Error> WriteMemory(Address addr, const T &value) {
             if (!WriteProcessMemory(target_process_, reinterpret_cast<LPVOID>(addr), &value, sizeof(T), nullptr)) {

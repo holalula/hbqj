@@ -53,34 +53,34 @@ namespace hbqj {
         // sm_.Initialize(process);
         // log("Done.");
 
-        g_get_view_matrix_func = reinterpret_cast<GetViewMatrixFunc>
-        (process->GetBaseAddr() + get_view_matrix_func_offset);
-        Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func),
-                      reinterpret_cast<PVOID>(GetViewMatrixHook));
-
-
-        g_get_active_camera_func = reinterpret_cast<GetActiveCameraFunc>
-        (process->GetBaseAddr() + g_get_active_camera_offset);
-        Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_active_camera_func),
-                      reinterpret_cast<PVOID>(GetActiveCameraHook));
-
-        PreviewHousing::load_housing_func_offset = 0xC4A390;
-        PreviewHousing::load_housing_func = reinterpret_cast<LoadHousingFunc>
-        (process->GetBaseAddr() + PreviewHousing::load_housing_func_offset);
-        Mhook_SetHook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func),
-                      reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
-
-        LoadHousing::select_item_func_offset = 0x6D1520;
-        LoadHousing::select_item_func = reinterpret_cast<SelectItemFunc>
-        (process->GetBaseAddr() + LoadHousing::select_item_func_offset);
-        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::select_item_func),
-                      reinterpret_cast<PVOID>(LoadHousing::SelectItemFuncHook));
-
-        LoadHousing::place_item_func_offset = 0x6D1E80;
-        LoadHousing::place_item_func = reinterpret_cast<PlaceItemFunc>
-        (process->GetBaseAddr() + LoadHousing::place_item_func_offset);
-        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::place_item_func),
-                      reinterpret_cast<PVOID>(LoadHousing::PlaceItemFuncHook));
+//        g_get_view_matrix_func = reinterpret_cast<GetViewMatrixFunc>
+//        (process->GetBaseAddr() + get_view_matrix_func_offset);
+//        Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func),
+//                      reinterpret_cast<PVOID>(GetViewMatrixHook));
+//
+//
+//        g_get_active_camera_func = reinterpret_cast<GetActiveCameraFunc>
+//        (process->GetBaseAddr() + g_get_active_camera_offset);
+//        Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_active_camera_func),
+//                      reinterpret_cast<PVOID>(GetActiveCameraHook));
+//
+//        PreviewHousing::load_housing_func_offset = 0xC4A390;
+//        PreviewHousing::load_housing_func = reinterpret_cast<LoadHousingFunc>
+//        (process->GetBaseAddr() + PreviewHousing::load_housing_func_offset);
+//        Mhook_SetHook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func),
+//                      reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
+//
+//        LoadHousing::select_item_func_offset = 0x6D1520;
+//        LoadHousing::select_item_func = reinterpret_cast<SelectItemFunc>
+//        (process->GetBaseAddr() + LoadHousing::select_item_func_offset);
+//        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::select_item_func),
+//                      reinterpret_cast<PVOID>(LoadHousing::SelectItemFuncHook));
+//
+//        LoadHousing::place_item_func_offset = 0x6D1E80;
+//        LoadHousing::place_item_func = reinterpret_cast<PlaceItemFunc>
+//        (process->GetBaseAddr() + LoadHousing::place_item_func_offset);
+//        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::place_item_func),
+//                      reinterpret_cast<PVOID>(LoadHousing::PlaceItemFuncHook));
 
         memory.Initialize(process);
 
