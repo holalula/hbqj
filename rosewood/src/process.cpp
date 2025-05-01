@@ -63,7 +63,7 @@ namespace hbqj {
         } while (Process32NextW(handle, &entry));
 
         CloseHandle(handle);
-        log.error("Process [{}] was not found.", process_name);
+        // log.error("Process [{}] was not found.", process_name);
         return std::unexpected(WinAPIError{.error = GetLastError()});
     }
 

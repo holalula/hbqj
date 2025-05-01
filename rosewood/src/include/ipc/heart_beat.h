@@ -64,7 +64,7 @@ namespace hbqj {
 
         const std::shared_ptr<Memory> &GetMemoryOperation() const {
             if (!is_game_process_running_) {
-                log.warn("Get MemoryOperation when Game is not launched..");
+                // log.warn("Get MemoryOperation when Game is not launched..");
             }
             return memory_operation_;
         };
@@ -110,9 +110,10 @@ namespace hbqj {
 
         void HeartBeatThread() {
             log.info("Launch heart beat thread..");
+
             while (running_) {
                 if (game_process_->GetProcess(process_name_).has_value()) {
-                    log.info("Game is launched..");
+                    // log.info("Game is launched..");
                     is_game_process_running_ = true;
 
                     if (game_process_->GetProcessModule(process_name_, process_name_)) {
@@ -134,6 +135,7 @@ namespace hbqj {
                         is_dll_injected_ = true;
                     }
                 } else {
+                    memory_operation_->initialized = false;
                     is_game_process_running_ = false;
                 }
 
