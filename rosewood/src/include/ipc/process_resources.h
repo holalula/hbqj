@@ -5,47 +5,9 @@
 #include <synchapi.h>
 #include <sddl.h>
 
+#include "event_manager.h"
+
 namespace hbqj {
-
-    static void SafeCloseHandle(HANDLE handle) {
-        // https://stackoverflow.com/questions/47575594/is-it-safe-to-call-closehandle-handle-who-handle-is-null
-        if (handle && handle != INVALID_HANDLE_VALUE) {
-            CloseHandle(handle);
-        }
-    }
-
-    static bool IsValidHandle(HANDLE handle) {
-        return handle && handle != INVALID_HANDLE_VALUE;
-    }
-
-    static void SafeLocalFree(PSECURITY_DESCRIPTOR sd) {
-        if (sd) {
-            LocalFree(sd);
-        }
-    }
-
-    static void SafeUnmapViewOfFile(void *p) {
-        if (p) {
-            UnmapViewOfFile(p);
-        }
-    }
-
-    using HandleGuard = std::unique_ptr<std::remove_pointer_t<HANDLE>, decltype(&SafeCloseHandle)>;
-
-    using SecurityDescriptorGuard = std::unique_ptr<std::remove_pointer_t<PSECURITY_DESCRIPTOR>, decltype(&SafeLocalFree)>;
-
-    using MapViewGuard = std::unique_ptr<void, decltype(&SafeUnmapViewOfFile)>;
-
-#pragma pack(push, 1)
-    struct SharedMemory {
-        int data1;
-        char event1_name[64];
-        int data2;
-        char event2_name[64];
-        char exit_event_name[64];
-    };
-#pragma pack(pop)
-
     class ProcessResources {
     public:
         ProcessResources(const ProcessResources &) = delete;
@@ -84,11 +46,12 @@ namespace hbqj {
 
         static constexpr const char *FILE_MAPPING_NAME = "Local\\HBQJSM";
 
+        HbqjEvents events_{};
+
     private:
         ProcessResources() {
             Initialize();
         }
-
 
         ~ProcessResources() = default;
 
@@ -98,16 +61,6 @@ namespace hbqj {
         HandleGuard event1_{nullptr, &SafeCloseHandle};
         HandleGuard event2_{nullptr, &SafeCloseHandle};
         HandleGuard exit_event_{nullptr, &SafeCloseHandle};
-
-        static SECURITY_ATTRIBUTES CreateEveryoneAccessSecurity() {
-            SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES)};
-            ConvertStringSecurityDescriptorToSecurityDescriptorA(
-                    "D:(A;;GA;;;WD)", // allow all users access
-                    SDDL_REVISION_1,
-                    &sa.lpSecurityDescriptor,
-                    nullptr);
-            return sa;
-        }
 
         void Initialize() {
             SECURITY_ATTRIBUTES sa = CreateEveryoneAccessSecurity();
@@ -172,6 +125,10 @@ namespace hbqj {
             strcpy_s(GetSharedMemory()->event1_name, GetEventName(1).c_str());
             strcpy_s(GetSharedMemory()->event2_name, GetEventName(2).c_str());
             strcpy_s(GetSharedMemory()->exit_event_name, GetEventName(3).c_str());
+
+            if (auto result = EventManager::CreateHbqjEvent(EventType::UpdateImGuizmoFlag)) {
+                events_.update_imguizmo_flag = std::move(result.value());
+            }
 
             std::cout << "Process resources initialized successfully" << std::endl;
         }

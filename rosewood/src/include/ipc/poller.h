@@ -84,12 +84,14 @@ namespace hbqj {
                 // Stop() can't be called in DLL_PROCESS_DETACH, since even if the RC is decremented by FreeLibrary,
                 // the DLL_PROCESS_DETACH won't be triggered as long as the created thread doesn't exit.
                 // This causes a circular dependency, so use a separate event to exit this thread.
-                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->GetExitEvent(), 1)) {
+                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->GetExitEvent(), 0)) {
                     should_stop_ = true;
                     return;
                 }
 
-                DWORD waitResult = WaitForSingleObject(event1, 1);
+                // If dwMilliseconds is zero, the function does not enter a wait state if the object is not signaled;
+                // it always returns immediately
+                DWORD waitResult = WaitForSingleObject(event1, 0);
 
                 if (waitResult == WAIT_OBJECT_0) {
                     if (event_callback_) {
@@ -97,6 +99,13 @@ namespace hbqj {
                     }
 
                     SetEvent(event2);
+                }
+
+                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->events_.update_imguizmo_flag.get(),
+                                                         0)) {
+                    if (event_callback_) {
+                        event_callback_(sm);
+                    }
                 }
 
                 std::this_thread::sleep_for(poll_interval_);

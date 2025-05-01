@@ -2,6 +2,7 @@
 
 #include "ui.h"
 #include "ipc/heart_beat.h"
+#include "ipc/process_resources.h"
 
 namespace hbqj {
     static bool place_anywhere = false;
@@ -39,6 +40,11 @@ namespace hbqj {
 
         if (ImGui::Checkbox("ImGuizmo", &imguizmo)) {
             log("ImGuizmo: {}", imguizmo);
+            if (memory->initialized) {
+                const auto &r = ProcessResources::GetInstance();
+                r.GetSharedMemory()->imguizmo_on = imguizmo;
+                SetEvent(r.events_.update_imguizmo_flag.get());
+            }
         }
 
         if (memory->initialized) {

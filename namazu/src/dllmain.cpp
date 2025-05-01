@@ -22,6 +22,10 @@ namespace hbqj {
 
     void OnHbqjEvent(SharedMemory *sm) {
         sm->data2 = sm->data1 + 300;
+
+        log(std::format("Receive Event, imguizmo_on: {}", sm->imguizmo_on).c_str());
+
+        g_imguizmo_on = sm->imguizmo_on;
     }
 
     DWORD WINAPI InitializeBgpop(LPVOID) {

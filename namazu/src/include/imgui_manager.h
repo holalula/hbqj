@@ -17,6 +17,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 namespace hbqj {
     static bool g_resized = false;
 
+    static bool g_imguizmo_on = false;
+
     LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
         if (ImGui::GetIO().WantCaptureMouse) {
             switch (msg) {
@@ -316,22 +318,22 @@ namespace hbqj {
         ImGui::End();
     }
 
-    uint64_t ParseHexString(const std::string& hex_str) {
+    uint64_t ParseHexString(const std::string &hex_str) {
         try {
             std::string str = hex_str;
             if (str.substr(0, 2) == "0x") {
                 str = str.substr(2);
             }
             return std::stoull(str, nullptr, 16);
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             log(std::format("Invalid hex str: {}", hex_str).c_str());
             return 0;
         }
     }
 
-    char parameter_1[32] = { 0 };
-    char parameter_2[32] = { 0 };
-    char buffer[4096] = { 0 };
+    char parameter_1[32] = {0};
+    char parameter_2[32] = {0};
+    char buffer[4096] = {0};
 
     HRESULT __stdcall PresentHook(IDXGISwapChain *swap_chain, UINT sync_interval, UINT flags) {
         // log("Call PresentHook.");
@@ -419,10 +421,10 @@ namespace hbqj {
                 ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_None);
 
                 if (memory.initialized) {
-                    const auto& items = memory.GetFurnitureList();
+                    const auto &items = memory.GetFurnitureList();
                     if (items) {
                         std::string items_str;
-                        for (const auto& item : items.value()) {
+                        for (const auto &item: items.value()) {
                             // log(std::format("{}", item).c_str());
                             items_str.append(std::format("{}\n", item));
                         }
@@ -440,7 +442,7 @@ namespace hbqj {
 
                 if (ImGui::Button("Select Housing Item")) {
                     if (memory.initialized) {
-                        const auto& addr = memory.GetHousingStructureAddr();
+                        const auto &addr = memory.GetHousingStructureAddr();
                         if (addr.has_value()) {
                             auto item_addr = ParseHexString(std::string(parameter_2));
                             LoadHousing::select_item_func(addr.value(), static_cast<int64_t>(item_addr));
@@ -451,7 +453,7 @@ namespace hbqj {
                 if (ImGui::Button("Place Housing Item")) {
                     log("Placing a housing item from debug window.");
                     if (memory.initialized) {
-                        const auto& addr = memory.GetHousingStructureAddr();
+                        const auto &addr = memory.GetHousingStructureAddr();
                         if (addr.has_value()) {
                             log("Trying to place item..");
 
@@ -466,7 +468,7 @@ namespace hbqj {
             }
 
             // ImGui::ShowDemoWindow(&is_demo_window_open);
-            if (memory.initialized && g_view_matrix) {
+            if (memory.initialized && g_view_matrix && g_imguizmo_on) {
                 auto layout_mode = memory.GetLayoutMode().value_or(-1);
                 if (layout_mode == HousingLayoutMode::Rotate) {
                     const auto &pos = memory.GetActivePosition();

@@ -7,6 +7,7 @@
 #include "ui/place_item_tab.h"
 #include "ui/save_and_load_tab.h"
 #include "ipc/heart_beat.h"
+#include "ipc/process_resources.h"
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -101,6 +102,9 @@ namespace hbqj {
         bool show_demo_window = true;
         bool show_another_window = false;
         ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+        // Initialize all resources
+        ProcessResources::GetInstance();
 
         auto &hb = HeartBeatMonitor::GetInstance();
         hb.Start();

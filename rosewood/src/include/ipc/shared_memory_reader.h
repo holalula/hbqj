@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include "process_resources.h"
+#include "event_manager.h"
 
 namespace hbqj {
     class SharedMemoryReader {
@@ -15,6 +16,8 @@ namespace hbqj {
         HandleGuard exit_event_{nullptr, &SafeCloseHandle};
 
     public:
+        HbqjEvents events_{};
+
         explicit SharedMemoryReader(const char *mapping_name) {
             map_file_.reset(OpenFileMappingA(
                     FILE_MAP_ALL_ACCESS,
@@ -67,6 +70,10 @@ namespace hbqj {
                     FALSE,
                     GetSharedMemory()->exit_event_name
             ));
+
+            if (auto result = EventManager::OpenHbqjEvent(EventType::UpdateImGuizmoFlag)) {
+                events_.update_imguizmo_flag = std::move(result.value());
+            }
 
             is_valid_ = true;
         }
