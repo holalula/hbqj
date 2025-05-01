@@ -36,7 +36,7 @@ namespace hbqj {
     std::map<uint32_t, std::string> item_type_name_dict;
     std::map<Byte, std::string> item_color_name_dict;
 
-    static HousingItemTableItem HouingItemToTableItem(const HousingItem &housing_item) {
+    static HousingItemTableItem HousingItemToTableItem(const HousingItem &housing_item) {
         return HousingItemTableItem{
                 .name = housing_item.type,
                 .color = housing_item.color,
@@ -85,8 +85,21 @@ namespace hbqj {
     }
 
     void SaveAndLoadTab() {
-        if (ImGui::Button("Load Furniture List From Game")) {
+        const auto &memory = HeartBeatMonitor::GetInstance().GetMemoryOperation();
 
+        if (ImGui::Button("Load Furniture List From Game")) {
+            if (memory->initialized) {
+                auto mode_result = memory->GetLayoutMode();
+                if (mode_result && mode_result.value() == HousingLayoutMode::Rotate) {
+                    table_items = memory->GetFurnitureList()
+                            .transform([](const auto &items) {
+                                return items
+                                       | std::views::transform(&HousingItemToTableItem)
+                                       | std::ranges::to<std::vector<HousingItemTableItem>>();
+                            })
+                            .value_or(std::vector<HousingItemTableItem>{});
+                }
+            }
         }
 
         if (ImGui::Button("Import Furniture List From File")) {
@@ -105,7 +118,7 @@ namespace hbqj {
 
                     if (result) {
                         table_items = result.value().items
-                                      | std::views::transform(HouingItemToTableItem)
+                                      | std::views::transform(&HousingItemToTableItem)
                                       | std::ranges::to<std::vector<HousingItemTableItem>>();
                     }
                 }
