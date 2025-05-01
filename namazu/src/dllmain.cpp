@@ -18,6 +18,8 @@
 namespace hbqj {
     std::unique_ptr<Poller> poller;
 
+    std::unique_ptr<SignatureManager> signature_manager;
+
     void OnHbqjEvent(SharedMemory *sm) {
         sm->data2 = sm->data1 + 300;
     }
@@ -48,21 +50,38 @@ namespace hbqj {
         }
 
         auto process = std::make_shared<Process>();
-        // log("Init SM.");
-        // SignatureManager sm_;
-        // sm_.Initialize(process);
-        // log("Done.");
 
-//        g_get_view_matrix_func = reinterpret_cast<GetViewMatrixFunc>
-//        (process->GetBaseAddr() + get_view_matrix_func_offset);
-//        Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func),
-//                      reinterpret_cast<PVOID>(GetViewMatrixHook));
-//
-//
-//        g_get_active_camera_func = reinterpret_cast<GetActiveCameraFunc>
-//        (process->GetBaseAddr() + g_get_active_camera_offset);
-//        Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_active_camera_func),
-//                      reinterpret_cast<PVOID>(GetActiveCameraHook));
+        signature_manager = std::make_unique<SignatureManager>();
+        signature_manager->Initialize(process);
+
+        const auto get_view_matrix_func_offset_result = signature_manager->GetSignature(SignatureType::ViewMatrix)
+                .transform([](auto signature) { return signature->addr; })
+                .transform([&process](auto addr) { return process->GetOffsetAddr(addr); })
+                .and_then([&process](auto addr) { return process->CalculateTargetOffsetCall(addr); });
+
+        if (get_view_matrix_func_offset_result) {
+            log(std::format("Hook GetViewMatrixFunc at offset: {:x}",
+                            get_view_matrix_func_offset_result.value()).c_str());
+
+            g_get_view_matrix_func = reinterpret_cast<GetViewMatrixFunc>
+            (process->GetBaseAddr() + get_view_matrix_func_offset_result.value());
+
+            Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_view_matrix_func),
+                          reinterpret_cast<PVOID>(GetViewMatrixHook));
+        }
+
+        const auto get_active_camera_offset = signature_manager->GetSignature(SignatureType::GetActiveCamera)
+                .transform([](auto sig) { return sig->addr; })
+                .transform([&process](auto addr) { return process->GetOffsetAddr(addr); })
+                .and_then([&process](auto addr) { return process->CalculateTargetOffsetCall(addr); });
+
+        if (get_active_camera_offset) {
+            g_get_active_camera_func = reinterpret_cast<GetActiveCameraFunc>
+            (process->GetBaseAddr() + get_active_camera_offset.value());
+            Mhook_SetHook(reinterpret_cast<PVOID *>(&g_get_active_camera_func),
+                          reinterpret_cast<PVOID>(GetActiveCameraHook));
+        }
+
 //
 //        PreviewHousing::load_housing_func_offset = 0xC4A390;
 //        PreviewHousing::load_housing_func = reinterpret_cast<LoadHousingFunc>
@@ -113,7 +132,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             hbqj::state::g_cleanup_requested = true;
 
             for (int i = 0; i < 50 && !hbqj::state::g_cleanup_completed; i++) {
-                Sleep(100);
+                Sleep(10);
                 hbqj::log("waiting for cleanup...");
             }
 

@@ -17,13 +17,13 @@ namespace hbqj {
                 log.info("Created cache directory: {}", utf16_to_utf8(cache_dir));
             }
         }
-        catch (const std::filesystem::filesystem_error& e) {
+        catch (const std::filesystem::filesystem_error &e) {
             log.error("Failed to create cache directory: {}", e.what());
         }
         return cache_dir / "signatures";
     }
 
-    bool SignatureManager::LoadAndVerifyCache(const std::filesystem::path& cache_path, uint64_t current_write_time) {
+    bool SignatureManager::LoadAndVerifyCache(const std::filesystem::path &cache_path, uint64_t current_write_time) {
         log.info("LoadAndVerifyCache, cache path: {}", cache_path.string());
         try {
             if (!std::filesystem::exists(cache_path)) {
@@ -41,7 +41,7 @@ namespace hbqj {
 
             signature_db_.clear();
 
-            for (const auto& sig : cache.signatures) {
+            for (const auto &sig: cache.signatures) {
                 // validate cached signature
                 std::vector<Byte> memory_data(sig.pattern.size());
                 SIZE_T bytes_read;
@@ -61,7 +61,7 @@ namespace hbqj {
                 if (!is_valid) {
                     // rescan if invalid
                     log.info("Cached signature {} is invalid, rescanning...", GetSigTypeStr(sig.type));
-                    const auto& result = scanner_.FindSignature(std::span(sig.pattern), sig.mask);
+                    const auto &result = scanner_.FindSignature(std::span(sig.pattern), sig.mask);
                     if (!result) {
                         log.error("Failed to find signature {}", GetSigTypeStr(sig.type));
                         continue;
@@ -93,7 +93,7 @@ namespace hbqj {
 
             return !signature_db_.empty();
         }
-        catch (const std::exception& e) {
+        catch (const std::exception &e) {
             log.error("Failed to load signature cache: {}", e.what());
             return false;
         }
@@ -116,7 +116,7 @@ namespace hbqj {
                 CloseHandle(file_handle);
             }
 
-            for (const auto& [type, sig] : signature_db_) {
+            for (const auto &[type, sig]: signature_db_) {
                 cache.signatures.push_back(SignatureCacheItem{
                         .type = sig.type,
                         .pattern = std::vector<Byte>(sig.pattern.begin(), sig.pattern.end()),
@@ -129,20 +129,21 @@ namespace hbqj {
             file << nlohmann::json(cache).dump(2);
             log.info("Successfully saved signature cache in {}", utf16_to_utf8(GetCachePath()));
         }
-        catch (const std::exception& e) {
+        catch (const std::exception &e) {
             log.error("Failed to save signature cache: {}", e.what());
         }
     }
 
-	void SignatureManager::Initialize(std::shared_ptr<Process> process) {
-		scanner_ = SignatureScanner{};
-		scanner_.Initialize(process);
+    void SignatureManager::Initialize(std::shared_ptr<Process> process) {
+        scanner_ = SignatureScanner{};
+        scanner_.Initialize(process);
 
         HANDLE file_handle = CreateFileW(process->target_module_.path,
                                          GENERIC_READ, FILE_SHARE_READ, nullptr,
                                          OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 
         if (file_handle != INVALID_HANDLE_VALUE) {
+            // TODO: Fix Chinese file path
             log.info("Opened file: {}", utf16_to_utf8(process->target_module_.path));
             BY_HANDLE_FILE_INFORMATION file_info;
             if (GetFileInformationByHandle(file_handle, &file_info)) {
@@ -160,31 +161,31 @@ namespace hbqj {
             log.error("Failed to open file: {}", utf16_to_utf8(process->target_module_.path));
         }
 
-		for (auto& signature : signatures_) {
-			const auto& result = scanner_.FindSignature(signature.pattern, signature.mask);
-			if (result) {
-				log.info("Found signature {}, address: {:x}", GetSigTypeStr(signature.type), scanner_.process_->GetOffsetAddr(result.value()));
-				signature_db_.insert({
-					signature.type,
-					Signature{.type = signature.type, .pattern = signature.pattern, .mask = signature.mask, .addr = result.value() }
-					}
-				);
-			}
-			else {
-				log.error("Failed to find signature {}, error code: {}", GetSigTypeStr(signature.type), result.error());
-			}
-		}
+        for (auto &signature: signatures_) {
+            const auto &result = scanner_.FindSignature(signature.pattern, signature.mask);
+            if (result) {
+                log.info("Found signature {}, address: {:x}", GetSigTypeStr(signature.type),
+                         scanner_.process_->GetOffsetAddr(result.value()));
+                signature_db_.insert({
+                                             signature.type,
+                                             Signature{.type = signature.type, .pattern = signature.pattern, .mask = signature.mask, .addr = result.value()}
+                                     }
+                );
+            } else {
+                log.error("Failed to find signature {}, error code: {}", GetSigTypeStr(signature.type), result.error());
+            }
+        }
 
         SaveCache();
-	}
+    }
 
-	std::expected<const Signature*, Error> SignatureManager::GetSignature(SignatureType type) {
-		auto it = signature_db_.find(type);
-		if (it == signature_db_.end()) {
-			std::string error_message = std::string("Signature not found for type: ").append(GetSigTypeStr(type));
-			log.error("{}", error_message);
-			return std::unexpected(SignatureNotFoundError{ .message = error_message });
-		}
-		return &(it->second);
-	}
+    std::expected<const Signature *, Error> SignatureManager::GetSignature(SignatureType type) {
+        auto it = signature_db_.find(type);
+        if (it == signature_db_.end()) {
+            std::string error_message = std::string("Signature not found for type: ").append(GetSigTypeStr(type));
+            log.error("{}", error_message);
+            return std::unexpected(SignatureNotFoundError{.message = error_message});
+        }
+        return &(it->second);
+    }
 }

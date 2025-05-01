@@ -6,29 +6,47 @@
 #include "signature_scanner.h"
 
 namespace hbqj {
-	TEST(SignatureManagerTest, Example) {
-		// GTEST_SKIP();
-		SignatureManager manager_;
-		auto process = std::make_shared<Process>("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+    TEST(SignatureManagerTest, Example) {
+        // GTEST_SKIP();
+        SignatureManager manager_;
+        auto process = std::make_shared<Process>("ffxiv_dx11.exe", "ffxiv_dx11.exe");
 
         {
             MEASURE_TIME("scan all signatures.");
             manager_.Initialize(process);
         }
 
-		auto result = manager_.GetSignature(SignatureType::BaseHouse);
-		EXPECT_TRUE(result.has_value());
+        auto result = manager_.GetSignature(SignatureType::BaseHouse);
+        EXPECT_TRUE(result.has_value());
 
-        auto view_matrix_offset = process->GetOffsetAddr(manager_.GetSignature(SignatureType::ViewMatrix).value()->addr);
+        auto view_matrix_offset = process->GetOffsetAddr(
+                manager_.GetSignature(SignatureType::ViewMatrix).value()->addr);
         process->log.info("ViewMatrix offset: 0x{:x}", process->CalculateTargetOffsetCall(view_matrix_offset).value());
 
-        auto load_housing_offset = process->GetOffsetAddr(manager_.GetSignature(SignatureType::LoadHouse).value()->addr);
+        auto load_housing_offset = process->GetOffsetAddr(
+                manager_.GetSignature(SignatureType::LoadHouse).value()->addr);
         process->log.info("LoadHousing offset: 0x{:x}", load_housing_offset);
-	}
+    }
 
-	TEST(SignatureManagerTest, SignatureNotFound) {
-		GTEST_SKIP();
-		SignatureManager m_;
-		m_.GetSignature(SignatureType::ActorTable);
-	}
+    TEST(SignatureManagerTest, SignatureNotFound) {
+        GTEST_SKIP();
+        SignatureManager m_;
+        m_.GetSignature(SignatureType::ActorTable);
+    }
+
+    TEST(SignatureManagerTest, GetActiveCamera) {
+        auto process = std::make_shared<Process>("ffxiv_dx11.exe", "ffxiv_dx11.exe");
+
+        SignatureManager manager_;
+        manager_.Initialize(process);
+
+        auto offset = manager_.GetSignature(SignatureType::GetActiveCamera)
+                .transform([](auto sig) { return sig->addr; })
+                .transform([&process](auto addr) { return process->GetOffsetAddr(addr); })
+                .and_then([&process](auto addr) { return process->CalculateTargetOffsetCall(addr); });
+
+        if (offset) {
+            Logger::Info("GetActionCameraOffset: 0x{:x}", offset.value());
+        }
+    }
 }
