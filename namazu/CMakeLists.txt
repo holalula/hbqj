@@ -21,7 +21,7 @@ set(__ROSEWOOD
     "${CMAKE_SOURCE_DIR}/rosewood/src/process.cpp"
     "${CMAKE_SOURCE_DIR}/rosewood/src/signature_manager.cpp"
     "${CMAKE_SOURCE_DIR}/rosewood/src/signature_scanner.cpp"
-    "${CMAKE_SOURCE_DIR}/rosewood/src/memory.cpp"
+    "${CMAKE_SOURCE_DIR}/rosewood/src/memory_operation.cpp"
 )
 
 set(SOURCE_FILES

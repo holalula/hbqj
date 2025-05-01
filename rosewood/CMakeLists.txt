@@ -8,7 +8,7 @@ set(SOURCE_FILES
         "src/signature_scanner.cpp"
         "src/signature_manager.cpp"
         "src/process.cpp"
-        "src/memory.cpp"
+        "src/memory_operation.cpp"
         "src/file.cpp"
         "src/hook.cpp"
         "src/file/decryption/aes_decryptor.cpp"
