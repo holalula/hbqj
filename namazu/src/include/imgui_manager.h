@@ -464,6 +464,17 @@ namespace hbqj {
                     }
                 }
 
+                if (ImGui::Button("Preview Housing Layout")) {
+                    std::vector<HousingItem> items = {
+                            {.type = 197441, .position = {1, 1, 1}, .rotation = 0, .color = 2},
+                            {.type = 197441, .position = {2, 2, 2}, .rotation = 0, .color = 3},
+                            {.type = 197444, .position = {2.5, 2.5, 2.5}, .rotation = 0, .color = 0},
+                            {.type = 197441, .position = {1.5, 1.5, 1.5}, .rotation = 0, .color = 15},
+                    };
+
+                    PreviewHousing::PreviewHousingLayout(items, 4);
+                }
+
                 ImGui::End();
             }
 

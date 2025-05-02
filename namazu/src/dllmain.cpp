@@ -86,12 +86,17 @@ namespace hbqj {
                           reinterpret_cast<PVOID>(GetActiveCameraHook));
         }
 
-//
-//        PreviewHousing::load_housing_func_offset = 0xC4A390;
-//        PreviewHousing::load_housing_func = reinterpret_cast<LoadHousingFunc>
-//        (process->GetBaseAddr() + PreviewHousing::load_housing_func_offset);
-//        Mhook_SetHook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func),
-//                      reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
+        const auto load_house_offset = signature_manager->GetSignature(SignatureType::LoadHouse)
+                .transform([](auto sig) { return sig->addr; })
+                .transform([&process](auto addr) { return process->GetOffsetAddr(addr); });
+
+        if (load_house_offset) {
+            PreviewHousing::load_housing_func = reinterpret_cast<LoadHousingFunc>
+            (process->GetBaseAddr() + load_house_offset.value());
+            Mhook_SetHook(reinterpret_cast<PVOID *>(&PreviewHousing::load_housing_func),
+                          reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
+        }
+
 //
 //        LoadHousing::select_item_func_offset = 0x6D1520;
 //        LoadHousing::select_item_func = reinterpret_cast<SelectItemFunc>

@@ -26,7 +26,7 @@ namespace hbqj {
     };
 
     struct HousingItem {
-        uint32_t type = 0;
+        uint32_t type = 0; // key starts from 0x30000
         Position position = {0, 0, 0};
         float rotation = 0; // y-axis rotation in radians
         Byte color = 0;
