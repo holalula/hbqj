@@ -142,4 +142,23 @@ namespace hbqj {
         EXPECT_EQ(result.unmatched_target[0].type, 4);
         EXPECT_EQ(result.unmatched_target[1].type, 5);
     }
+
+    TEST(LayoutLoaderTest, MatchColorFirst) {
+        // Need to prioritize color match. Although color(29) is first checked, it should not match any item.
+        std::vector<HousingItem> current = {
+                {.type = 197441, .color = 29, .item_addr = 0x100},
+                {.type = 197441, .color = 0, .item_addr = 0x200},
+                {.type = 197441, .color = 0, .item_addr = 0x300},
+        };
+        std::vector<HousingItem> target = {
+                {.type = 197441, .position = {1, 1, 1}, .rotation = 0, .color = 0},
+                {.type = 197441, .position = {2, 2, 2}, .rotation = 0, .color = 0}
+        };
+
+        auto result = LayoutLoader::GetLoadingPlan(current, target);
+
+        EXPECT_EQ(result.matched_items.size(), 2);
+        EXPECT_EQ(result.matched_items.at(0).color, 0);
+        EXPECT_EQ(result.matched_items.at(1).color, 0);
+    }
 }

@@ -64,6 +64,36 @@ namespace hbqj {
             std::vector<HousingItem> unmatched_current;
 
             for (const auto &current_item: current_layout) {
+                auto matches = find_type_matches(current_item, target_layout, is_matched);
+
+                auto color_match = std::ranges::find_if(matches, [&](const auto &pair) {
+                    return pair.second.color == current_item.color;
+                });
+
+                if (color_match != std::ranges::end(matches)) {
+                    const auto &target_item = target_layout[(*color_match).first];
+                    loading_plan.push_back({
+                                                   .type = current_item.type,
+                                                   .position = target_item.position,
+                                                   .rotation = target_item.rotation,
+                                                   .color = current_item.color,
+                                                   .item_addr = current_item.item_addr
+                                           });
+                    is_matched[(*color_match).first] = true;
+                }
+            }
+
+            for (const auto &current_item: current_layout) {
+                bool already_matched = false;
+                for (const auto &matched_item: loading_plan) {
+                    if (matched_item.item_addr == current_item.item_addr) {
+                        already_matched = true;
+                        break;
+                    }
+                }
+
+                if (already_matched) continue;
+
                 if (auto target_idx = find_best_match(current_item, target_layout, is_matched)) {
                     const auto &target_item = target_layout[*target_idx];
                     loading_plan.push_back({
