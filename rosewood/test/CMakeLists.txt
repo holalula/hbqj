@@ -29,6 +29,7 @@ add_executable(rosewood_tests
         layout_loader_test.cpp
         ipc_test.cpp
         ipc/heart_beat_test.cpp
+        file/csv/reader_test.cpp
 )
 
 # add_dependencies(rosewood_tests namazu)

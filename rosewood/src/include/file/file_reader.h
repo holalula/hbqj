@@ -137,9 +137,17 @@ namespace hbqj {
             return layout;
         }
 
+        static int CorrectFurnitureKey(const int id) {
+            const int key_offset = 0x30000;
+            if (id < key_offset) {
+                return id + key_offset;
+            }
+            return id;
+        }
+
         static HousingItem ConvertFurnitureItemToHousingItem(const FurnitureItem &furniture, size_t index) {
             return HousingItem{
-                    .type = static_cast<uint32_t>(furniture.categoryId),
+                    .type = static_cast<uint32_t>(CorrectFurnitureKey(furniture.categoryId)),
                     .position = {
                             furniture.posX[index],
                             furniture.posY[index],
