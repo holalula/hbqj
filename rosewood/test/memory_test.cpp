@@ -43,21 +43,31 @@ namespace hbqj {
         auto process = std::make_shared<Process>();
         Memory memory;
         memory.Initialize(process);
+
         auto result = memory.GetFurnitureList();
+
         if (result.has_value()) {
             for (const auto &item: result.value()) {
-                process->log.info("{}", item);
-                // process->log.info("y->q = {}", Memory::RadianToQuaternion(item.rotation));
+                process->log.info("FurnitureListItem: {}", item);
+                process->log.info("Radian -> Quaternion = {}", Memory::RadianToQuaternion(item.rotation));
             }
         } else {
             process->log.error("{}", result.error());
         }
 
-//        auto rotation = memory.GetActiveRotation();
-//        if (rotation) {
-//            process->log.info("q = {}", *rotation);
-//            process->log.info("q->y = {}", Memory::QuaternionToRadian(rotation.value()));
-//        }
+        auto rotation = memory.GetActiveRotation();
+        if (rotation) {
+            process->log.info("Active Rotation = {}", *rotation);
+            process->log.info("Quaternion -> Radian = {}", Memory::QuaternionToRadian(rotation.value()));
+        }
+    }
+
+    TEST(MemoryTest, SetActiveRotation) {
+        auto process = std::make_shared<Process>();
+        Memory memory;
+        memory.Initialize(process);
+
+        memory.SetActiveRotation(-2.9);
     }
 
     TEST(MemoryTest, GetLayoutMode) {

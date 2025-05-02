@@ -44,6 +44,8 @@ namespace hbqj {
         std::expected<Position, Error>
         SetActivePosition(std::optional<float> x, std::optional<float> y, std::optional<float> z);
 
+        std::expected<float, Error> SetActiveRotation(float rotation);
+
         std::expected<std::vector<HousingItem>, Error> GetFurnitureList();
 
         bool initialized = false;

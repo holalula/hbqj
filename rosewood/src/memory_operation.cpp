@@ -110,6 +110,15 @@ namespace hbqj {
         return position;
     }
 
+    std::expected<float, Error> Memory::SetActiveRotation(float rotation) {
+        TRY(active_housing_item,
+            GetActiveHousingItem());
+
+        TRY(_, process_->WriteMemory<Quaternion>(active_housing_item + 0x60, RadianToQuaternion(rotation)));
+
+        return rotation;
+    }
+
     std::expected<std::vector<HousingItem>, Error> Memory::GetFurnitureList() {
         TRY(housing_module_signature,
             signature_manager_.GetSignature(SignatureType::HousingModule));
