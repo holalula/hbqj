@@ -7,6 +7,8 @@
 #include <string>
 #include <filesystem>
 #include <tuple>
+#include <unordered_map>
+#include <ranges>
 
 namespace hbqj {
     struct HousingFurnitureCsv {
@@ -41,18 +43,18 @@ namespace hbqj {
             return result;
         }
 
-        static void Parse(const std::filesystem::path &file_path) {
+        static std::vector<HousingFurnitureCsv> Parse(const std::filesystem::path &file_path) {
             namespace fs = std::filesystem;
 
             if (!fs::exists(file_path)) {
-                return;
+                return {};
             }
 
             std::vector<HousingFurnitureCsv> furnitures;
             std::ifstream file(file_path);
 
             if (!file.is_open()) {
-                return;
+                return {};
             }
 
             std::string line;
@@ -81,16 +83,17 @@ namespace hbqj {
                 } catch (const std::exception &e) {}
             }
 
-            for (int i = 0; i < std::min(15, (int) furnitures.size()); i++) {
-                if (furnitures[i].name.empty()) continue;
+            return furnitures;
+        }
 
-                // if (furnitures[i].custom_talk.empty()) continue;
-
-                std::cout << std::format("name: {}, key: {}, custom_talk: {}",
-                                         furnitures[i].name,
-                                         furnitures[i].key,
-                                         furnitures[i].custom_talk) << std::endl;
-            }
+        static std::map<int, std::string> FurnitureKeyToNameMapping(const std::filesystem::path &path) {
+            return Parse(path)
+                   | std::views::filter([](const auto &furniture) { return !furniture.name.empty(); })
+                   |
+                   std::views::transform([](const auto &furniture) {
+                       return std::pair{furniture.key, furniture.name};
+                   })
+                   | std::ranges::to<std::map<int, std::string>>();
         }
     };
 }

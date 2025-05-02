@@ -4,10 +4,16 @@
 #include <vector>
 #include <map>
 
+#include "file/csv/reader.h"
 #include "file/file_reader.h"
 #include "ui.h"
 
 namespace hbqj {
+    // TODO: Fix file path
+    static std::map<int, std::string> item_key_to_name = CsvParser::FurnitureKeyToNameMapping(
+            std::filesystem::current_path() / "HousingFurniture.csv"
+    );
+
     static const std::string unknown = "Unknown";
 
     template<typename K, typename V>
@@ -33,7 +39,6 @@ namespace hbqj {
 
     std::vector<HousingItemTableItem> table_items;
 
-    std::map<uint32_t, std::string> item_type_name_dict;
     std::map<Byte, std::string> item_color_name_dict;
 
     static HousingItemTableItem HousingItemToTableItem(const HousingItem &housing_item) {
@@ -102,6 +107,12 @@ namespace hbqj {
             }
         }
 
+        ImGui::SameLine();
+
+        if (ImGui::Button("Clear")) {
+            table_items.clear();
+        }
+
         if (ImGui::Button("Import Furniture List From File")) {
             if (auto file_path_result = ShowFileDialog(false)) {
                 if (file_path_result) {
@@ -167,7 +178,8 @@ namespace hbqj {
                 ImGui::TableNextRow();
 
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Text("%s", GetOrDefault(item_type_name_dict, item.name, unknown).c_str());
+                ImGui::Text("%s", GetOrDefault(item_key_to_name, static_cast<int>(item.name),
+                                               std::format("{}({})", unknown, item.name)).c_str());
 
                 ImGui::TableSetColumnIndex(1);
                 ImGui::Text("%s", GetOrDefault(item_color_name_dict, item.color, unknown).c_str());
