@@ -7,6 +7,7 @@
 #include "file/csv/reader.h"
 #include "file/file_reader.h"
 #include "ui.h"
+#include "file.h"
 
 namespace hbqj {
     // TODO: Fix file path
@@ -142,8 +143,29 @@ namespace hbqj {
             if (auto file_path_result = ShowFileDialog(true)) {
                 if (file_path_result) {
                     std::filesystem::path path(file_path_result.value());
+
                     const auto &file_path = path.string();
                     log("{}", file_path);
+
+                    auto items = table_items
+                                 | std::views::transform([](const auto &table_item) {
+                        return HousingItem{
+                                .type = table_item.name,
+                                .position = {.x = table_item.x, .y = table_item.y, .z = table_item.z},
+                                .rotation = table_item.r,
+                                .color = table_item.color,
+                        };
+                    })
+                                 | std::ranges::to<std::vector<HousingItem>>();
+
+                    std::map<std::string, std::string> metadata{};
+
+                    HousingLayout layout{
+                            .metadata = metadata,
+                            .items = items,
+                    };
+
+                    File::SaveToFile(path, layout);
                 }
             }
         }

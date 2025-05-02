@@ -26,7 +26,7 @@ namespace hbqj {
         }
 
         template<typename T>
-        bool SaveToFile(const std::filesystem::path &path, const T &value) {
+        static bool SaveToFile(const std::filesystem::path &path, const T &value) {
             json j = value;
 
             try {
@@ -57,6 +57,6 @@ namespace hbqj {
 
         void SavePosition();
 
-        Logger log = Logger::GetLogger("File");
+        inline static Logger log = Logger::GetLogger("File");
     };
 }

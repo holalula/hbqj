@@ -34,7 +34,6 @@ namespace hbqj {
                 }
         };
 
-        File file;
-        file.SaveToFile(std::filesystem::current_path() / "housing", housing);
+        File::SaveToFile(std::filesystem::current_path() / "housing", housing);
     }
 }
