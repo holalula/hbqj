@@ -23,9 +23,13 @@ namespace hbqj {
                 manager_.GetSignature(SignatureType::ViewMatrix).value()->addr);
         process->log.info("ViewMatrix offset: 0x{:x}", process->CalculateTargetOffsetCall(view_matrix_offset).value());
 
-        auto load_housing_offset = process->GetOffsetAddr(
-                manager_.GetSignature(SignatureType::LoadHouse).value()->addr);
-        process->log.info("LoadHousing offset: 0x{:x}", load_housing_offset);
+        auto select_housing_item = process->GetOffsetAddr(
+                manager_.GetSignature(SignatureType::SelectHousingItem).value()->addr);
+        process->log.info("Select offset: 0x{:x}", select_housing_item);
+
+        auto place_housing_item = process->GetOffsetAddr(
+                manager_.GetSignature(SignatureType::PlaceHousingItem).value()->addr);
+        process->log.info("Place offset: 0x{:x}", place_housing_item);
     }
 
     TEST(SignatureManagerTest, SignatureNotFound) {

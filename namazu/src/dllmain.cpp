@@ -97,18 +97,27 @@ namespace hbqj {
                           reinterpret_cast<PVOID>(PreviewHousing::LoadHousingFuncHook));
         }
 
-//
-//        LoadHousing::select_item_func_offset = 0x6D1520;
-//        LoadHousing::select_item_func = reinterpret_cast<SelectItemFunc>
-//        (process->GetBaseAddr() + LoadHousing::select_item_func_offset);
-//        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::select_item_func),
-//                      reinterpret_cast<PVOID>(LoadHousing::SelectItemFuncHook));
-//
-//        LoadHousing::place_item_func_offset = 0x6D1E80;
-//        LoadHousing::place_item_func = reinterpret_cast<PlaceItemFunc>
-//        (process->GetBaseAddr() + LoadHousing::place_item_func_offset);
-//        Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::place_item_func),
-//                      reinterpret_cast<PVOID>(LoadHousing::PlaceItemFuncHook));
+        const auto select_item_func_offset = signature_manager->GetSignature(SignatureType::SelectHousingItem)
+                .transform([](auto sig) { return sig->addr; })
+                .transform([&process](auto addr) { return process->GetOffsetAddr(addr); });
+
+        if (select_item_func_offset) {
+            LoadHousing::select_item_func = reinterpret_cast<SelectItemFunc>
+            (process->GetBaseAddr() + select_item_func_offset.value());
+            Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::select_item_func),
+                          reinterpret_cast<PVOID>(LoadHousing::SelectItemFuncHook));
+        }
+
+        const auto place_item_func_offset = signature_manager->GetSignature(SignatureType::PlaceHousingItem)
+                .transform([](auto sig) { return sig->addr; })
+                .transform([&process](auto addr) { return process->GetOffsetAddr(addr); });
+
+        if (place_item_func_offset) {
+            LoadHousing::place_item_func = reinterpret_cast<PlaceItemFunc>
+            (process->GetBaseAddr() + place_item_func_offset.value());
+            Mhook_SetHook(reinterpret_cast<PVOID *>(&LoadHousing::place_item_func),
+                          reinterpret_cast<PVOID>(LoadHousing::PlaceItemFuncHook));
+        }
 
         memory.Initialize(process);
 

@@ -31,6 +31,8 @@ namespace hbqj {
         ActorTable,
         HousingModule,
         GetActiveCamera,
+        SelectHousingItem,
+        PlaceHousingItem,
         COUNT,
     };
 
@@ -77,6 +79,10 @@ namespace hbqj {
                     return "HousingModule";
                 case SignatureType::GetActiveCamera:
                     return "GetActiveCamera";
+                case SignatureType::SelectHousingItem:
+                    return "SelectHousingItem";
+                case SignatureType::PlaceHousingItem:
+                    return "PlaceHousingItem";
                 default:
                     return "Unknown";
             }
@@ -169,6 +175,18 @@ namespace hbqj {
                                  SignatureScanner::MakePattern(
                                          "\xE8\x00\x00\x00\x00\x45\x32\xFF\x40\x32\xF6"),
                                  "x????xxxxxx"
+                         },
+                         {
+                                 SignatureType::SelectHousingItem,
+                                 SignatureScanner::MakePattern(
+                                         "\x48\x85\xD2\x0F\x84\x49\x09\x00\x00\x53\x41\x56\x48\x83\xEC\x48\x48\x89\x6C\x24\x60\x48\x8B\xDA\x48\x89\x74\x24\x70\x4C\x8B\xF1"),
+                                 "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                         },
+                         {
+                                 SignatureType::PlaceHousingItem,
+                                 SignatureScanner::MakePattern(
+                                         "\x48\x89\x5C\x24\x10\x48\x89\x74\x24\x18\x57\x48\x83\xEC\x20\x4C\x8B\x41\x18\x33\xFF\x0F\xB6\xF2"),
+                                 "xxxxxxxxxxxxxxxxxxxxxxxx"
                          }
                  }};
 

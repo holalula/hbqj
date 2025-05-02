@@ -4,6 +4,7 @@
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
 #include <ImGuizmo.h>
+#include <thread>
 
 #include "d3d_manager.h"
 #include "game_memory.h"
@@ -11,6 +12,7 @@
 #include "preview_housing.h"
 #include "math_utils.h"
 #include "load_housing.h"
+#include "layout_loader.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -460,6 +462,52 @@ namespace hbqj {
                             auto item_addr = ParseHexString(std::string(parameter_2));
 
                             LoadHousing::place_item_func(addr.value(), static_cast<int64_t>(item_addr));
+                        }
+                    }
+                }
+
+                if (ImGui::Button("Load Housing Layout")) {
+                    if (memory.initialized) {
+                        auto items = memory.GetFurnitureList();
+                        if (items) {
+                            std::vector<HousingItem> target = {
+                                    {.type = 197441, .position = {1, 1, 1}, .rotation = 0, .color = 0},
+                                    {.type = 197441, .position = {2, 2, 2}, .rotation = 0, .color = 0}
+                            };
+
+                            const auto &plan = LayoutLoader::GetLoadingPlan(items.value(), target);
+
+                            const auto &addr = memory.GetHousingStructureAddr();
+                            if (addr) {
+
+                                std::thread load_layout_thread([addr, plan] {
+                                    for (const auto &plan_item: plan.matched_items) {
+                                        LoadHousing::select_item_func(addr.value(),
+                                                                      static_cast<int64_t>(plan_item.item_addr));
+
+                                        log(std::format("Place matched item {}.", plan_item).c_str());
+
+                                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                                        memory.SetActivePosition(plan_item.position.x, plan_item.position.y,
+                                                                 plan_item.position.z);
+
+                                        // TODO: set rotation of active item
+
+
+                                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                                        LoadHousing::place_item_func(addr.value(),
+                                                                     static_cast<int64_t>(plan_item.item_addr));
+
+                                        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                                    }
+                                });
+
+                                load_layout_thread.detach();
+
+                                log("Create a loading layout thread..");
+                            }
                         }
                     }
                 }
