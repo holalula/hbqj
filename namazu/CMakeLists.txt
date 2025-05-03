@@ -3,7 +3,7 @@ set(PROJECT_NAME namazu)
 ################################################################################
 # Source files
 ################################################################################
-set(__ImGui
+set(__IMGUI
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp"
     "${imgui_SOURCE_DIR}/imgui_draw.cpp"
@@ -13,7 +13,7 @@ set(__ImGui
     "${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp"
 )
 
-set(__ImGuizmo
+set(__IMGUIZMO
     "${imguizmo_SOURCE_DIR}/ImGuizmo.cpp"
 )
 
@@ -25,8 +25,8 @@ set(__ROSEWOOD
 )
 
 set(SOURCE_FILES
-    ${__ImGui}
-    ${__ImGuizmo}
+    ${__IMGUI}
+    ${__IMGUIZMO}
     ${__ROSEWOOD}
     "src/dllmain.cpp"
 )
@@ -36,94 +36,46 @@ set(SOURCE_FILES
 ################################################################################
 add_library(namazu SHARED ${SOURCE_FILES})
 
-target_precompile_headers(${PROJECT_NAME} PRIVATE
-    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/include/pch.h>"
-)
-
-use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE namazu)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    VS_GLOBAL_KEYWORD "Win32Proj"
-)
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-    )
-endif()
 ################################################################################
 # Include directories
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_include_directories(${PROJECT_NAME} PUBLIC
-        "$<$<CONFIG:Release>:"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/include;"
-            "${hbqj_SOURCE_DIR}/rosewood/src/include"
-            "${imgui_SOURCE_DIR}"
-            "${imgui_SOURCE_DIR}/backends"
-            "${mhook_SOURCE_DIR}"
-            "${imguizmo_SOURCE_DIR}"
-        ">"
-    )
-endif()
+target_include_directories(namazu PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
+        "${CMAKE_SOURCE_DIR}/rosewood/src/include"
+        "${imgui_SOURCE_DIR}"
+        "${imgui_SOURCE_DIR}/backends"
+        "${mhook_SOURCE_DIR}"
+        "${imguizmo_SOURCE_DIR}"
+)
 
 ################################################################################
 # Compile definitions
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "$<$<CONFIG:Debug>:"
-            "_DEBUG"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "NDEBUG"
-        ">"
-        "NAMAZU_EXPORTS;"
-        "_WINDOWS;"
-        "_USRDLL;"
-        "UNICODE;"
-        "_UNICODE"
-    )
-endif()
+target_compile_definitions(namazu PRIVATE
+        _WINDOWS
+        _USRDLL
+        UNICODE
+        _UNICODE
+)
 
 ################################################################################
 # Compile and link options
 ################################################################################
 if(MSVC)
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        target_compile_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Release>:
-                /Oi;
-                /Gy
-            >
-            /permissive-;
-            /sdl;
-            /W3;
-            ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-            ${DEFAULT_CXX_EXCEPTION_HANDLING};
-            /Y-
-        )
-    endif()
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        target_link_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Debug>:
-                /INCREMENTAL
-            >
-            $<$<CONFIG:Release>:
-                /OPT:REF;
-                /OPT:ICF;
-                /INCREMENTAL:NO
-            >
-            /DEBUG;
+    target_compile_options(namazu PRIVATE
+            /permissive-
+            /W3
+    )
+
+    target_link_options(namazu PRIVATE
+            /DEBUG
             /SUBSYSTEM:WINDOWS
-        )
-   endif()
+    )
 endif()
 
 ################################################################################
 # Dependencies
 ################################################################################
-# Link with other targets.
 target_link_libraries(namazu PUBLIC
     nlohmann_json::nlohmann_json
     mhook

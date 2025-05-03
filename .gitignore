@@ -33,6 +33,4 @@ CMakeSettings.json
 /client/color
 
 /.idea
-/cmake-build-debug
-/cmake-build-release
-/cmake-build-release-visual-studio
+/cmake-build-*

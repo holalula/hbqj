@@ -1,6 +1,9 @@
 set(PROJECT_NAME client)
 
-set(__ImGui
+################################################################################
+# Source groups
+################################################################################
+set(__IMGUI
         "${imgui_SOURCE_DIR}/imgui.cpp"
         "${imgui_SOURCE_DIR}/imgui_demo.cpp"
         "${imgui_SOURCE_DIR}/imgui_draw.cpp"
@@ -20,23 +23,19 @@ set(__ROSEWOOD
 )
 
 set(SOURCE_FILES
-        ${__ImGui}
+        ${__IMGUI}
         ${__ROSEWOOD}
         src/main.cpp
 )
 
-if (MSVC)
-    # https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model
-    add_compile_options(/EHsc)
-endif ()
-
+################################################################################
+# Target
+################################################################################
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-        UNICODE
-        _UNICODE
-)
-
+################################################################################
+# Include directories
+################################################################################
 target_include_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"
         "${CMAKE_SOURCE_DIR}/rosewood/src/include"
@@ -44,6 +43,25 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         "${imgui_SOURCE_DIR}/backends"
 )
 
+################################################################################
+# Compile definitions
+################################################################################
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        UNICODE
+        _UNICODE
+)
+
+################################################################################
+# Compile and link options
+################################################################################
+if (MSVC)
+    # https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model
+    add_compile_options(/EHsc)
+endif ()
+
+################################################################################
+# Dependencies
+################################################################################
 target_link_libraries(${PROJECT_NAME} PRIVATE
         d3d11
         nlohmann_json::nlohmann_json
