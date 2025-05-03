@@ -26,6 +26,7 @@ set(SOURCE_FILES
 )
 
 if (MSVC)
+    # https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model
     add_compile_options(/EHsc)
 endif ()
 
