@@ -10,7 +10,7 @@
 namespace hbqj {
 
     // event callback function
-    void OnEvent(SharedMemory *sm) {
+    void OnEvent(SharedMemory *sm, EventType type) {
         sm->data2 = 114514;
     }
 

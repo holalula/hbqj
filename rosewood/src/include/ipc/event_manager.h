@@ -5,7 +5,7 @@
 #include <optional>
 #include <windows.h>
 
-#include "struct.h"
+#include "shared_memory_struct.h"
 
 namespace hbqj {
     enum EventType {
