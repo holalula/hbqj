@@ -1,5 +1,7 @@
 #pragma once
 
+#include "struct.h"
+
 namespace hbqj {
 #pragma pack(push, 1)
     struct SharedMemory {
@@ -9,6 +11,9 @@ namespace hbqj {
         char event2_name[64];
         char exit_event_name[64];
         bool imguizmo_on = false;
+
+        HousingItem preview_items[400];
+        int preview_items_count = 0;
     };
 #pragma pack(pop)
 
@@ -53,8 +58,10 @@ namespace hbqj {
 
     struct HbqjEvents {
         HbqjEvents() :
-                update_imguizmo_flag({nullptr, &SafeCloseHandle}) {}
+                update_imguizmo_flag({nullptr, &SafeCloseHandle}),
+                preview_housing_layout({nullptr, &SafeCloseHandle}) {}
 
         HandleGuard update_imguizmo_flag;
+        HandleGuard preview_housing_layout;
     };
 }

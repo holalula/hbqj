@@ -20,12 +20,33 @@ namespace hbqj {
 
     std::unique_ptr<SignatureManager> signature_manager;
 
-    void OnHbqjEvent(SharedMemory *sm) {
+    void OnHbqjEvent(SharedMemory *sm, EventType type) {
         sm->data2 = sm->data1 + 300;
 
-        log(std::format("Receive Event, imguizmo_on: {}", sm->imguizmo_on).c_str());
+        log(std::format("Receive Event, type: {}", static_cast<int>(type)).c_str());
 
-        g_imguizmo_on = sm->imguizmo_on;
+        switch (type) {
+            case EventType::UpdateImGuizmoFlag:
+                g_imguizmo_on = sm->imguizmo_on;
+                break;
+            case EventType::PreviewHousingLayout:
+                std::vector<HousingItem> items;
+                for (int i = 0; i < sm->preview_items_count; i++) {
+                    items.push_back({
+                                            .type = sm->preview_items[i].type,
+                                            .position = sm->preview_items[i].position,
+                                            .rotation = sm->preview_items[i].rotation,
+                                            .color = sm->preview_items[i].color,
+                                    });
+                }
+
+                PreviewHousing::PreviewHousingLayout(
+                        items,
+                        sm->preview_items_count
+                );
+                break;
+        }
+
     }
 
     DWORD WINAPI InitializeBgpop(LPVOID) {

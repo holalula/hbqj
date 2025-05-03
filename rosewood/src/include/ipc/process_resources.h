@@ -130,6 +130,10 @@ namespace hbqj {
                 events_.update_imguizmo_flag = std::move(result.value());
             }
 
+            if (auto result = EventManager::CreateHbqjEvent(EventType::PreviewHousingLayout)) {
+                events_.preview_housing_layout = std::move(result.value());
+            }
+
             std::cout << "Process resources initialized successfully" << std::endl;
         }
     };

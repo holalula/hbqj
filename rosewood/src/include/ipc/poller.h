@@ -11,24 +11,26 @@
 #include "shared_memory_reader.h"
 
 namespace hbqj {
+    using EventCallbackFunction = std::function<void(SharedMemory *, EventType)>;
+
     class Poller {
     private:
         std::unique_ptr<SharedMemoryReader> reader_;
         std::thread polling_thread_;
         std::atomic<bool> should_stop_{false};
-        std::function<void(SharedMemory *)> event_callback_;
+        EventCallbackFunction event_callback_;
         std::chrono::milliseconds poll_interval_;
 
     public:
-        explicit Poller(std::function<void(SharedMemory *)> callback) : event_callback_(std::move(callback)),
-                                                                        poll_interval_(std::chrono::milliseconds(20)) {
+        explicit Poller(EventCallbackFunction callback) : event_callback_(std::move(callback)),
+                                                          poll_interval_(std::chrono::milliseconds(20)) {
 
             reader_ = std::make_unique<SharedMemoryReader>(ProcessResources::FILE_MAPPING_NAME);
 
         }
 
         Poller(const char *mapping_name,
-               std::function<void(SharedMemory *)> callback,
+               EventCallbackFunction callback,
                std::chrono::milliseconds interval = std::chrono::milliseconds(1000))
                 : event_callback_(std::move(callback)), poll_interval_(interval) {
 
@@ -91,20 +93,25 @@ namespace hbqj {
 
                 // If dwMilliseconds is zero, the function does not enter a wait state if the object is not signaled;
                 // it always returns immediately
-                DWORD waitResult = WaitForSingleObject(event1, 0);
+//                DWORD waitResult = WaitForSingleObject(event1, 0);
+//
+//                if (waitResult == WAIT_OBJECT_0) {
+//                    if (event_callback_) {
+//                        event_callback_(sm);
+//                    }
+//
+//                    SetEvent(event2);
+//                }
 
-                if (waitResult == WAIT_OBJECT_0) {
+                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->events_.update_imguizmo_flag.get(), 0)) {
                     if (event_callback_) {
-                        event_callback_(sm);
+                        event_callback_(sm, EventType::UpdateImGuizmoFlag);
                     }
-
-                    SetEvent(event2);
                 }
 
-                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->events_.update_imguizmo_flag.get(),
-                                                         0)) {
+                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->events_.preview_housing_layout.get(), 0)) {
                     if (event_callback_) {
-                        event_callback_(sm);
+                        event_callback_(sm, EventType::PreviewHousingLayout);
                     }
                 }
 

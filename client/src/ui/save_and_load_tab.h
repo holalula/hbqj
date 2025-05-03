@@ -198,7 +198,28 @@ namespace hbqj {
         }
 
         if (ImGui::Button("Preview Housing Layout")) {
+            auto sm = ProcessResources::GetInstance().GetSharedMemory();
 
+            sm->preview_items_count = 0;
+            for (auto const [i, table_item]: std::views::enumerate(table_items)) {
+                if (TableItemStatus::IN_FILE == table_item.status || TableItemStatus::IN_GAME == table_item.status
+                    || TableItemStatus::MATCHED == table_item.status) {
+                    sm->preview_items_count++;
+
+                    sm->preview_items[i].type = table_item.name;
+                    sm->preview_items[i].position = {
+                            .x = table_item.x,
+                            .y = table_item.y,
+                            .z = table_item.z,
+                    };
+                    sm->preview_items[i].rotation = table_item.r;
+                    sm->preview_items[i].color = table_item.color;
+                }
+            }
+
+            if (sm->preview_items_count > 0) {
+                SetEvent(ProcessResources::GetInstance().events_.preview_housing_layout.get());
+            }
         }
 
         if (ImGui::Button("Load Housing Layout From File Into Game")) {
