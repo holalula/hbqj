@@ -8,6 +8,7 @@
 #include "file/file_reader.h"
 #include "ui.h"
 #include "file.h"
+#include "layout_loader.h"
 
 namespace hbqj {
     // TODO: Fix file path
@@ -32,10 +33,36 @@ namespace hbqj {
             | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY
             | ImGuiTableFlags_SizingFixedFit;
 
+    enum TableItemStatus {
+        IN_GAME,
+        IN_FILE,
+        MATCHED,
+        UNMATCHED_CURRENT,
+        UNMATCHED_TARGET,
+    };
+
+    static std::string GetTableItemStatus(TableItemStatus status) {
+        switch (status) {
+            case IN_GAME:
+                return "InGame";
+            case IN_FILE:
+                return "InFile";
+            case MATCHED:
+                return "Matched";
+            case UNMATCHED_CURRENT:
+                return "UnmatchedInGame";
+            case UNMATCHED_TARGET:
+                return "UnmatchedInTarget";
+            default:
+                return unknown;
+        }
+    }
+
     struct HousingItemTableItem {
         uint32_t name;
         uint8_t color;
         float x, y, z, r;
+        TableItemStatus status;
     };
 
     std::vector<HousingItemTableItem> table_items;
@@ -52,14 +79,6 @@ namespace hbqj {
                 .r = housing_item.rotation,
         };
     }
-
-    struct LoadingHousingLayoutTableItem {
-        std::string name;
-        std::string color;
-        float x, y, z, r;
-        float t_x, t_y, t_z, t_r;
-        int item_type = 0;
-    };
 
     std::optional<std::wstring> ShowFileDialog(bool isSave) {
         OPENFILENAMEW ofn;
@@ -101,6 +120,10 @@ namespace hbqj {
                             .transform([](const auto &items) {
                                 return items
                                        | std::views::transform(&HousingItemToTableItem)
+                                       | std::views::transform([](auto item) {
+                                    item.status = TableItemStatus::IN_GAME;
+                                    return item;
+                                })
                                        | std::ranges::to<std::vector<HousingItemTableItem>>();
                             })
                             .value_or(std::vector<HousingItemTableItem>{});
@@ -131,6 +154,10 @@ namespace hbqj {
                     if (result) {
                         table_items = result.value().items
                                       | std::views::transform(&HousingItemToTableItem)
+                                      | std::views::transform([](auto item) {
+                            item.status = TableItemStatus::IN_FILE;
+                            return item;
+                        })
                                       | std::ranges::to<std::vector<HousingItemTableItem>>();
                     }
                 }
@@ -174,15 +201,58 @@ namespace hbqj {
 
         }
 
-        if (ImGui::Button("Load Current Housing Layout Into Game")) {
+        if (ImGui::Button("Load Housing Layout From File Into Game")) {
+            if (auto file_path_result = ShowFileDialog(false)) {
+                if (file_path_result) {
+                    std::filesystem::path path(file_path_result.value());
 
+                    const auto &result = file_reader
+                            .DeserializeFile(path)
+                            .transform(FileReader::ToHousingLayout);
+
+                    if (result) {
+                        auto items_from_file = result.value().items;
+
+                        if (memory->initialized) {
+                            auto mode_result = memory->GetLayoutMode();
+                            if (mode_result && mode_result.value() == HousingLayoutMode::Rotate) {
+                                auto items_from_game_result = memory->GetFurnitureList();
+                                if (items_from_game_result) {
+                                    auto items_from_game = items_from_game_result.value();
+
+                                    const auto &plan = LayoutLoader::GetLoadingPlan(items_from_game, items_from_file);
+
+                                    table_items.clear();
+                                    for (const auto &item: plan.matched_items) {
+                                        auto table_item = HousingItemToTableItem(item);
+                                        table_item.status = TableItemStatus::MATCHED;
+                                        table_items.push_back(table_item);
+                                    }
+
+                                    for (const auto &item: plan.unmatched_current) {
+                                        auto table_item = HousingItemToTableItem(item);
+                                        table_item.status = TableItemStatus::UNMATCHED_CURRENT;
+                                        table_items.push_back(table_item);
+                                    }
+
+                                    for (const auto &item: plan.unmatched_target) {
+                                        auto table_item = HousingItemToTableItem(item);
+                                        table_item.status = TableItemStatus::UNMATCHED_TARGET;
+                                        table_items.push_back(table_item);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
 
         ImGuiStyle &style = ImGui::GetStyle();
         style.Colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
         style.Colors[ImGuiCol_TableRowBgAlt] = ImVec4(0.30f, 0.30f, 0.30f, 0.09f);
-        if (ImGui::BeginTable("furniture_list", 6, table_flags)) {
+        if (ImGui::BeginTable("furniture_list", 7, table_flags)) {
 
             // Declare columns
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None, 150.0f);
@@ -191,6 +261,7 @@ namespace hbqj {
             ImGui::TableSetupColumn("Y", ImGuiTableColumnFlags_None, 80.0f);
             ImGui::TableSetupColumn("Z", ImGuiTableColumnFlags_None, 80.0f);
             ImGui::TableSetupColumn("Rotation", ImGuiTableColumnFlags_None, 80.0f);
+            ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_None, 120.0f);
 
             ImGui::TableSetupScrollFreeze(1, 1);
 
@@ -217,6 +288,9 @@ namespace hbqj {
 
                 ImGui::TableSetColumnIndex(5);
                 ImGui::Text("%.3f", item.r);
+
+                ImGui::TableSetColumnIndex(6);
+                ImGui::Text("%s", GetTableItemStatus(item.status).c_str());
             }
             ImGui::EndTable();
         }
