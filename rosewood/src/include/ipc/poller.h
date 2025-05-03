@@ -115,6 +115,12 @@ namespace hbqj {
                     }
                 }
 
+                if (WAIT_OBJECT_0 == WaitForSingleObject(reader_->events_.load_layout.get(), 0)) {
+                    if (event_callback_) {
+                        event_callback_(sm, EventType::LoadHousingLayout);
+                    }
+                }
+
                 std::this_thread::sleep_for(poll_interval_);
             }
         }

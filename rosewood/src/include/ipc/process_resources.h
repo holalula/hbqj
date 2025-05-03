@@ -134,6 +134,10 @@ namespace hbqj {
                 events_.preview_housing_layout = std::move(result.value());
             }
 
+            if (auto result = EventManager::CreateHbqjEvent(EventType::LoadHousingLayout)) {
+                events_.load_layout = std::move(result.value());
+            }
+
             std::cout << "Process resources initialized successfully" << std::endl;
         }
     };

@@ -11,6 +11,7 @@ namespace hbqj {
     enum EventType {
         UpdateImGuizmoFlag = 0,
         PreviewHousingLayout,
+        LoadHousingLayout,
     };
 
     class EventManager {
@@ -53,6 +54,8 @@ namespace hbqj {
                     return std::format(EVENT_NAME_FORMAT, "UpdateImGuizmoFlag");
                 case PreviewHousingLayout:
                     return std::format(EVENT_NAME_FORMAT, "PreviewHousingLayout");
+                case LoadHousingLayout:
+                    return std::format(EVENT_NAME_FORMAT, "LoadHousingLayout");
                 default:
                     return "UnknownEvent";
             }

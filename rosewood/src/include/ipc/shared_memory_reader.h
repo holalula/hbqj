@@ -79,6 +79,10 @@ namespace hbqj {
                 events_.preview_housing_layout = std::move(result.value());
             }
 
+            if (auto result = EventManager::OpenHbqjEvent(EventType::LoadHousingLayout)) {
+                events_.load_layout = std::move(result.value());
+            }
+
             is_valid_ = true;
         }
 

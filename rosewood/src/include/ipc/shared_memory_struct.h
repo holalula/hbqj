@@ -14,6 +14,9 @@ namespace hbqj {
 
         HousingItem preview_items[400];
         int preview_items_count = 0;
+
+        HousingItem load_layout_items[400];
+        int load_layout_items_count = 0;
     };
 #pragma pack(pop)
 
@@ -59,9 +62,11 @@ namespace hbqj {
     struct HbqjEvents {
         HbqjEvents() :
                 update_imguizmo_flag({nullptr, &SafeCloseHandle}),
-                preview_housing_layout({nullptr, &SafeCloseHandle}) {}
+                preview_housing_layout({nullptr, &SafeCloseHandle}),
+                load_layout({nullptr, &SafeCloseHandle}) {}
 
         HandleGuard update_imguizmo_flag;
         HandleGuard preview_housing_layout;
+        HandleGuard load_layout;
     };
 }

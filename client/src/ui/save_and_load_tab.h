@@ -71,6 +71,8 @@ namespace hbqj {
 
     std::vector<HousingItemTableItem> table_items;
 
+    std::vector<HousingItem> matched_items;
+
     std::map<Byte, std::string> item_color_name_dict;
 
     static HousingItemTableItem HousingItemToTableItem(const HousingItem &housing_item) {
@@ -231,7 +233,11 @@ namespace hbqj {
             }
         }
 
-        if (ImGui::Button("Load Housing Layout From File Into Game")) {
+        ImGui::Separator();
+
+        ImGui::Text("Load Housing Layout From File Into Game");
+
+        if (ImGui::Button("1. Open File")) {
             if (auto file_path_result = ShowFileDialog(false)) {
                 if (file_path_result) {
                     std::filesystem::path path(file_path_result.value());
@@ -251,6 +257,8 @@ namespace hbqj {
                                     auto items_from_game = items_from_game_result.value();
 
                                     const auto &plan = LayoutLoader::GetLoadingPlan(items_from_game, items_from_file);
+
+                                    matched_items = plan.matched_items;
 
                                     table_items.clear();
                                     for (const auto &item: plan.matched_items) {
@@ -275,6 +283,25 @@ namespace hbqj {
                         }
                     }
                 }
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("2. Load Into Game")) {
+            auto sm = ProcessResources::GetInstance().GetSharedMemory();
+
+            sm->load_layout_items_count = 0;
+
+            // TODO: load from table items?
+            for (const auto [i, item]: std::views::enumerate(matched_items)) {
+                sm->load_layout_items_count++;
+
+                sm->load_layout_items[i] = item;
+            }
+
+            if (sm->load_layout_items_count > 0) {
+                SetEvent(ProcessResources::GetInstance().events_.load_layout.get());
             }
         }
 

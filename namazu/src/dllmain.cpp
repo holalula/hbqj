@@ -26,10 +26,11 @@ namespace hbqj {
         log(std::format("Receive Event, type: {}", static_cast<int>(type)).c_str());
 
         switch (type) {
-            case EventType::UpdateImGuizmoFlag:
+            case EventType::UpdateImGuizmoFlag: {
                 g_imguizmo_on = sm->imguizmo_on;
                 break;
-            case EventType::PreviewHousingLayout:
+            }
+            case EventType::PreviewHousingLayout: {
                 std::vector<HousingItem> items;
                 for (int i = 0; i < sm->preview_items_count; i++) {
                     items.push_back({
@@ -45,8 +46,41 @@ namespace hbqj {
                         sm->preview_items_count
                 );
                 break;
-        }
+            }
+            case EventType::LoadHousingLayout: {
+                if (memory.initialized) {
+                    const auto &addr = memory.GetHousingStructureAddr();
 
+                    const auto &items = sm->load_layout_items;
+
+                    if (addr) {
+                        std::thread load_layout_thread([addr, items] {
+                            for (const auto &item: items) {
+                                LoadHousing::select_item_func(addr.value(),
+                                                              static_cast<int64_t>(item.item_addr));
+
+                                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                                memory.SetActivePosition(item.position.x, item.position.y,
+                                                         item.position.z);
+
+                                memory.SetActiveRotation(item.rotation);
+
+                                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                                LoadHousing::place_item_func(addr.value(),
+                                                             static_cast<int64_t>(item.item_addr));
+
+                                std::this_thread::sleep_for(std::chrono::milliseconds(300));
+                            }
+                        });
+
+                        load_layout_thread.detach();
+                    }
+                }
+                break;
+            }
+        }
     }
 
     DWORD WINAPI InitializeBgpop(LPVOID) {
