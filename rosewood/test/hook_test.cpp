@@ -64,6 +64,7 @@ namespace hbqj {
         // GTEST_SKIP();
         Hook hook;
 
+        // TODO: Stop poller thread before unload dll
         auto result = hook.Unload(L"namazu.dll", "ffxiv_dx11.exe");
         if (!result) {
             hook.log.error("{}", result.error());

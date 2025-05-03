@@ -89,11 +89,18 @@ namespace hbqj {
         static std::map<int, std::string> FurnitureKeyToNameMapping(const std::filesystem::path &path) {
             return Parse(path)
                    | std::views::filter([](const auto &furniture) { return !furniture.name.empty(); })
-                   |
-                   std::views::transform([](const auto &furniture) {
-                       return std::pair{furniture.key, furniture.name};
-                   })
+                   | std::views::transform([](const auto &furniture) {
+                return std::pair{furniture.key, furniture.name};
+            })
                    | std::ranges::to<std::map<int, std::string>>();
+        }
+
+        static std::vector<int> PreviewableFurnitureList(const std::filesystem::path &path) {
+            return Parse(path)
+                   | std::views::filter([](const auto &furniture) { return !furniture.name.empty(); })
+                   | std::views::filter([](const auto &furniture) { return furniture.custom_talk.empty(); })
+                   | std::views::transform([](const auto &furniture) { return furniture.key; })
+                   | std::ranges::to<std::vector<int>>();
         }
     };
 }

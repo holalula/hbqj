@@ -26,4 +26,17 @@ namespace hbqj {
             }
         }
     }
+
+    TEST(CsvReaderTest, PreviewableFurniture) {
+        const auto &file_path = std::filesystem::current_path() / "HousingFurniture.csv";
+
+        const auto &previewable_items = CsvParser::PreviewableFurnitureList(file_path);
+        const auto &key_to_name = CsvParser::FurnitureKeyToNameMapping(file_path);
+
+        for (auto const [key, name]: key_to_name) {
+            if (std::find(previewable_items.begin(), previewable_items.end(), key) == previewable_items.end()) {
+                Logger::Info("{}", name);
+            }
+        }
+    }
 }

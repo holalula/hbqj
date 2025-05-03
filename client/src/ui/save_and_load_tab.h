@@ -16,6 +16,10 @@ namespace hbqj {
             std::filesystem::current_path() / "HousingFurniture.csv"
     );
 
+    static std::vector<int> previewable_items = CsvParser::PreviewableFurnitureList(
+            std::filesystem::current_path() / "HousingFurniture.csv"
+    );
+
     static const std::string unknown = "Unknown";
 
     template<typename K, typename V>
@@ -202,6 +206,11 @@ namespace hbqj {
 
             sm->preview_items_count = 0;
             for (auto const [i, table_item]: std::views::enumerate(table_items)) {
+                if (std::find(previewable_items.begin(), previewable_items.end(), table_item.name)
+                    == previewable_items.end()) {
+                    continue;
+                }
+
                 if (TableItemStatus::IN_FILE == table_item.status || TableItemStatus::IN_GAME == table_item.status
                     || TableItemStatus::MATCHED == table_item.status) {
                     sm->preview_items_count++;
