@@ -73,6 +73,6 @@ add_dependencies(client namazu)
 
 add_custom_command(TARGET client POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/x64/Release/namazu.dll"
+        "${CMAKE_BINARY_DIR}/namazu/namazu.dll"
         "${CMAKE_BINARY_DIR}/client/namazu.dll"
 )
