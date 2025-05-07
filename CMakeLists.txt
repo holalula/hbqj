@@ -57,6 +57,13 @@ if (NOT OpenSSL_FOUND)
     message(FATAL_ERROR "OpenSSL not found. Please install OpenSSL.")
 endif ()
 
+FetchContent_Declare(
+        httplib
+        GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
+        GIT_TAG 3af7f2c16147f3fbc6e4d717032daf505dc1652c
+)
+FetchContent_Populate(httplib)
+
 ################################################################################
 # Sub-projects
 ################################################################################

@@ -18,6 +18,7 @@ add_executable(${PROJECT_NAME} ${ALL_FILES})
 target_include_directories(updater PRIVATE
         "${CMAKE_SOURCE_DIR}/include"
         "${CMAKE_BINARY_DIR}/include"
+        "${httplib_SOURCE_DIR}"
 )
 
 ################################################################################
@@ -42,3 +43,11 @@ if (MSVC)
             /SUBSYSTEM:CONSOLE
     )
 endif ()
+
+################################################################################
+# Dependencies
+################################################################################
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        OpenSSL::SSL
+        OpenSSL::Crypto
+)
