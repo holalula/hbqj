@@ -49,5 +49,5 @@ endif ()
 ################################################################################
 add_subdirectory(namazu)
 add_subdirectory(rosewood)
-add_subdirectory(test)
+add_subdirectory(updater)
 add_subdirectory(client)

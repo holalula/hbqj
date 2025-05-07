@@ -4,7 +4,5 @@ using namespace std;
 
 int main()
 {
-    std::cout << "HaiBinQiangJia\n";
-   
-    getchar();
+    std::cout << "Updater" << std::endl;
 }
