@@ -60,7 +60,7 @@ endif ()
 FetchContent_Declare(
         httplib
         GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
-        GIT_TAG 3af7f2c16147f3fbc6e4d717032daf505dc1652c
+        GIT_TAG cbca63f091ef1147ff57e90eb1ee5e558aa05d2c
 )
 FetchContent_Populate(httplib)
 
