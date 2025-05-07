@@ -5,6 +5,19 @@ set(CMAKE_SYSTEM_VERSION 10.0)
 set(CMAKE_CXX_STANDARD 23)
 
 ################################################################################
+# Project Version
+################################################################################
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+
+configure_file(
+        ${CMAKE_SOURCE_DIR}/include/version.h.in
+        ${CMAKE_BINARY_DIR}/include/version.h
+)
+
+################################################################################
 # Third-party Dependencies
 ################################################################################
 include(FetchContent)
